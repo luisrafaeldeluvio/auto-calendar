@@ -1,5 +1,5 @@
-import { TOTAL_TIME } from "./constants.ts";
-import type { Result, TimeSlot, SlotError } from "./types.ts";
+import { TOTAL_TIME } from "./constants";
+import type { Result, TimeSlot, SlotError } from "./types";
 
 type MutationData = { slots: TimeSlot[]; slot: TimeSlot };
 

@@ -12,7 +12,7 @@ export const getSlot = (
 
 export const addSlot = (
   slots: TimeSlot[],
-  slot: Omit<TimeSlot, "id"> & Partial<Pick<TimeSlot, "id">>,
+  slot: Omit<TimeSlot, "id">,
 ): Result<MutationData, SlotError> => {
   const error = validateSlot(slots, { ...slot });
   if (error) return { ok: false, error: error };

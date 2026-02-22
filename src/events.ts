@@ -13,7 +13,7 @@
 // 3:15 | EVENT 2
 // 3:30 | TASK 1
 
-import { Result, Event } from "./types";
+import type { Result, Event } from "./types";
 
 type MutationData = { events: Event[]; event: Event };
 

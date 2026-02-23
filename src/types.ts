@@ -36,7 +36,7 @@ export interface Task extends Event {
 export interface AutoTask extends Omit<Task, "start" | "end"> {
   duration: number; // Up to 1440 (23 hours and 30 minutes)
   weight: Weight; // 1-4 with 4 being the highest
-  slotId: string;
+  // slotId: string;
 
   start?: number;
   end?: number;

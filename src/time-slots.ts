@@ -63,7 +63,7 @@ export const updateSlot = (
 };
 
 /**
- * Validates a slot against existing slots for overlaps, range boundaries, and duration
+ * Validates a slot against existing slots for range boundaries and duration
  *
  * @param slots - The collection of slots to check against
  * @param slot - The start and end times of the slot being validated
@@ -77,16 +77,12 @@ const validateSlot = (
   ignoreId?: string,
 ): SlotError | null => {
   const filteredSlots = slots.filter((s) => s.id !== ignoreId);
-  const isOverlapping = filteredSlots.some(
-    (s) => s.end > slot.start && slot.end > s.start,
-  );
   const totalSlotTime = filteredSlots.reduce(
     (t, s) => t + (s.end - s.start),
     0,
   );
 
   if (slot.start >= slot.end) return "INVALID_RANGE";
-  if (isOverlapping) return "OVERLAP";
   if (totalSlotTime + (slot.end - slot.start) > TOTAL_TIME)
     return "TIME_EXCEEDED";
 

@@ -1,20 +1,23 @@
 import { TOTAL_TIME } from "./constants";
 import type { Result, TimeSlot, SlotError } from "./types";
 
-type MutationData = { slots: TimeSlot[]; slot: TimeSlot };
+interface MutationData {
+  slots: TimeSlot[];
+  slot: TimeSlot;
+}
 
 export const getSlot = (
-  slots: TimeSlot[],
+  slots: readonly TimeSlot[],
   id: string,
 ): TimeSlot | undefined => {
   return slots.find((s) => s.id === id);
 };
 
 export const addSlot = (
-  slots: TimeSlot[],
-  slot: Omit<TimeSlot, "id">,
+  slots: readonly TimeSlot[],
+  slot: Readonly<Omit<TimeSlot, "id">>,
 ): Result<MutationData, SlotError> => {
-  const error = validateSlot(slots, { ...slot });
+  const error = validateSlot([...slots], { ...slot });
   if (error) return { ok: false, error: error };
 
   const newSlot = { ...slot, id: crypto.randomUUID() };
@@ -24,7 +27,7 @@ export const addSlot = (
 };
 
 export const removeSlot = (
-  slots: TimeSlot[],
+  slots: readonly TimeSlot[],
   id: string,
 ): Result<MutationData, "NOT_FOUND"> => {
   const slot = slots.find((s) => id === s.id);
@@ -36,18 +39,18 @@ export const removeSlot = (
 };
 
 export const updateSlot = (
-  slots: TimeSlot[],
+  slots: readonly TimeSlot[],
   id: string,
-  updates: Partial<Omit<TimeSlot, "id">>,
+  updates: Readonly<Partial<Omit<TimeSlot, "id">>>,
 ): Result<MutationData, "NOT_FOUND" | SlotError> => {
-  let existingSlot = slots.find((slot) => id === slot.id);
+  const existingSlot = slots.find((slot) => id === slot.id);
   if (!existingSlot) return { ok: false, error: "NOT_FOUND" };
 
   const start = updates.start ?? existingSlot.start;
   const end = updates.end ?? existingSlot.end;
 
   const error = validateSlot(
-    slots,
+    [...slots],
     { start: start, end: end },
     existingSlot.id,
   );
@@ -59,9 +62,18 @@ export const updateSlot = (
   return { ok: true, data: { slots: newSlots, slot: updatedSlot } };
 };
 
+/**
+ * Validates a slot against existing slots for overlaps, range boundaries, and duration
+ *
+ * @param slots - The collection of slots to check against
+ * @param slot - The start and end times of the slot being validated
+ * @param ignoreId - (Optional) An ID to ignore during checks
+ *
+ * @returns An error type or null
+ */
 const validateSlot = (
-  slots: TimeSlot[],
-  slot: Omit<TimeSlot, "id" | "name">,
+  slots: readonly TimeSlot[],
+  slot: Readonly<Omit<TimeSlot, "id" | "name">>,
   ignoreId?: string,
 ): SlotError | null => {
   const filteredSlots = slots.filter((s) => s.id !== ignoreId);
@@ -80,37 +92,3 @@ const validateSlot = (
 
   return null;
 };
-
-const slots: TimeSlot[] = [];
-
-// addSlot("morning", 300, 540);
-// addSlot("evening", 550, 1100);
-// console.log("before:", timeSlot.slots);
-// console.log(
-//   "after:",
-//   timeSlot.update(timeSlot.slots[0].id, {
-//     name: "noon",
-//     start: 540,
-//     end: 551,
-//   }),
-// );
-
-// console.log(addSlot("morning", 300, 540));
-// console.log(timeSlot.remove(timeSlot.slots[0].id));
-// console.log(timeSlot.slots);
-
-// const val = addSlot("morning", 540, 144000);
-// if (!val.ok) {
-//   console.log(val.error);
-// }
-
-// console.log(addSlot(slots, "morning", 600, 540));
-// console.log(addSlot(slots, "morning", 300, 500));
-// console.log(addSlot(slots, "morning", 540, 144000));
-// console.log(slots);
-
-const newSlot = addSlot(slots, { name: "morning", start: 540, end: 600 });
-const updatedSlots = newSlot.ok ? newSlot.data.slots : slots;
-console.log("initial:", slots);
-console.log("add:", newSlot);
-console.log("new", updatedSlots);

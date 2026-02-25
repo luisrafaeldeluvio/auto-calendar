@@ -1,6 +1,6 @@
-import { TOTAL_TIME } from "./constants";
-import type { AutoTask, Result, Event } from "./types";
-import { events, queuedTasks } from "./mock-data";
+import type { AutoTask, Result, Event, TimeSlot } from "./types";
+import { events, queuedTasks, slots } from "./mock-data";
+import { getSlot } from "./time-slots";
 
 interface MutationData {
   tasks: AutoTask[];
@@ -10,47 +10,102 @@ interface MutationData {
 const scheduleTasks = (
   queuedTasks: readonly AutoTask[],
   activeEvents: readonly Event[],
+  slots: readonly TimeSlot[],
+): Result<MutationData, "SLOT_NOT_FOUND"> => {
+  const tasksBySlots = Object.entries(
+    queuedTasks.reduce(
+      (tasks, task) => ({
+        ...tasks,
+        [task.slotId]: [...(tasks[task.slotId] ?? []), task],
+      }),
+      {} as Record<string, AutoTask[]>,
+    ),
+  );
+
+  const tasks: MutationData | "SLOT_NOT_FOUND" = tasksBySlots.reduce(
+    (acc, [slotId, taskList]) => {
+      if (acc === "SLOT_NOT_FOUND") return "SLOT_NOT_FOUND";
+
+      const slot = getSlot(slots, slotId);
+
+      if (!slot) {
+        return "SLOT_NOT_FOUND";
+      } else {
+        const sortedTask = sortTasks(
+          taskList,
+          activeEvents,
+          slot.start,
+          slot.end,
+        );
+        return {
+          tasks: [...acc.tasks, ...sortedTask.tasks],
+          queue: [...acc.queue, ...sortedTask.queue],
+        };
+      }
+    },
+    { tasks: [], queue: [] } as MutationData | "SLOT_NOT_FOUND",
+  );
+
+  if (tasks === "SLOT_NOT_FOUND") return { ok: false, error: "SLOT_NOT_FOUND" };
+
+  return { ok: true, data: tasks };
+};
+
+const sortTasks = (
+  queuedTasks: readonly AutoTask[],
+  activeEvents: readonly Event[],
+  startTime: number,
+  maxTime: number,
   toSchedule: AutoTask[] = [],
-  usedTime = 0,
-): Result<MutationData, ""> => {
-  const busyEvents =
-    toSchedule.length === 0
-      ? activeEvents.filter((e) => e.isBusy)
-      : activeEvents;
+) => {
   const [task, ...tasks] = queuedTasks;
 
-  if (!task) return { ok: true, data: { tasks: toSchedule, queue: [] } };
+  if (!task) return { tasks: toSchedule, queue: [] };
 
-  const totalTime = usedTime + task.duration;
+  const busyEvents = !toSchedule.length
+    ? activeEvents.filter((e) => e.isBusy)
+    : activeEvents;
+  const currenTotalTime = startTime + task.duration;
   const isOverlap = busyEvents.find(
-    (e) => e.end > usedTime && totalTime > e.start,
+    (e) => e.end > startTime && currenTotalTime > e.start,
   );
 
   if (isOverlap)
-    return scheduleTasks(tasks, busyEvents, [...toSchedule], isOverlap.end);
+    return sortTasks(tasks, busyEvents, isOverlap.end, maxTime, [
+      ...toSchedule,
+    ]);
 
-  const isScheduleFull = totalTime > TOTAL_TIME;
+  const isScheduleFull = currenTotalTime > maxTime;
   if (isScheduleFull) {
-    return { ok: true, data: { tasks: toSchedule, queue: [task, ...tasks] } };
+    return { tasks: toSchedule, queue: [...tasks, task] };
   }
 
   const newTask: AutoTask = {
     ...task,
-    start: usedTime,
-    end: totalTime,
+    start: startTime,
+    end: currenTotalTime,
   };
 
-  return scheduleTasks(tasks, busyEvents, [...toSchedule, newTask], totalTime);
+  return sortTasks(tasks, busyEvents, currenTotalTime, maxTime, [
+    ...toSchedule,
+    newTask,
+  ]);
 };
+
+// TODO:
+// - [/] Allow the timeslots to overlap with each other
+// - [/] Implement timeslots to the algorithm
+// - [ ] Implement the buffer to the algorithm
 
 console.time("heavy-task");
 const scheduled = scheduleTasks(
   queuedTasks.sort((a, b) => a.weight - b.weight),
   events,
+  slots,
 );
 console.timeEnd("heavy-task");
 
-// if (scheduled.ok) console.log(scheduled.data);
+console.log(scheduled);
 
 // just plan out the data structure first
 // since the auto schedule only occurs in 1 (or 2) week
@@ -59,3 +114,12 @@ console.timeEnd("heavy-task");
 //  a DUE date(default is today at 23:59) and STARTING date(default is today).
 // If the task's starting date is more than 2 weeks from now, just set it aside.
 // If the task can't be assigned a time, jsut set it aside for now aswell.
+
+// if (!inSlot) {
+// maybe we can change the usedTime to slot.start?
+// but what if we have another task that is in the same slot? that wont work.
+// visualize this whole function in paper and try again.
+
+// one way to think about this is each slots is its own total time. so slot.end can be TOTAL_TIME,
+// that means that we just need to split this even  more to their own pieces.
+// }

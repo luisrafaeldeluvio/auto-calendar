@@ -26,10 +26,6 @@ export const addEvent = (
     ...event,
     id: crypto.randomUUID(),
     isBusy: event.isBusy ?? true,
-    buffer: event.buffer ?? {
-      before: 0,
-      after: 0,
-    },
   };
   const newEvents = [...events, newEvent];
 

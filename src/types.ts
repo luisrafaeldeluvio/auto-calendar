@@ -39,6 +39,9 @@ export interface AutoTask extends Omit<Task, "start" | "end"> {
     after: number;
   };
 
+  startDate: number;
+  dueDate: number;
+
   start?: number;
   end?: number;
 }

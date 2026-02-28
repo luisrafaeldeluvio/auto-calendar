@@ -16,9 +16,6 @@ export default defineConfig([
       tseslint.configs.stylistic,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
-      functional.configs.externalTypeScriptRecommended,
-      functional.configs.recommended,
-      functional.configs.stylistic,
     ],
     languageOptions: {
       ecmaVersion: 2020,
@@ -31,8 +28,16 @@ export default defineConfig([
         projectService: true,
       },
     },
+  },
+  {
+    files: ["src/engine/**/*.ts"],
     plugins: {
       functional,
+    },
+    rules: {
+      ...functional.configs.externalTypeScriptRecommended.rules,
+      ...functional.configs.recommended.rules,
+      ...functional.configs.stylistic.rules,
     },
   },
 ]);

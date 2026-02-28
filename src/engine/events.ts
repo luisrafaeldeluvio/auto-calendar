@@ -19,8 +19,7 @@ type MutationData = { events: Event[]; event: Event };
 
 export const addEvent = (
   events: Event[],
-  event: Omit<Event, "id" | "isBusy" | "buffer"> &
-    Partial<Pick<Event, "isBusy" | "buffer">>,
+  event: Omit<Event, "id" | "isBusy"> & Partial<Pick<Event, "isBusy">>,
 ): Result<MutationData, ""> => {
   const newEvent = {
     ...event,

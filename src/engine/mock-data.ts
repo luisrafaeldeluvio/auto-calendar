@@ -8,7 +8,6 @@ export const events: Event[] = [
     start: 300, // 5:00 AM
     end: 420, // 7:00 AM
     isBusy: true,
-    buffer: { before: 0, after: 0 },
   },
   {
     id: "2",
@@ -16,7 +15,6 @@ export const events: Event[] = [
     start: 600, // 10:00 AM
     end: 780, // 1:00 PM
     isBusy: false,
-    buffer: { before: 0, after: 0 },
   },
   {
     id: "3",
@@ -24,7 +22,6 @@ export const events: Event[] = [
     start: 1020, // 5:00 PM
     end: 1260, // 9:00 PM
     isBusy: true,
-    buffer: { before: 0, after: 0 },
   },
 ];
 

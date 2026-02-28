@@ -7,7 +7,7 @@ interface MutationData {
   queue: AutoTask[];
 }
 
-const scheduleTasks = (
+export const scheduleTasks = (
   queuedTasks: readonly AutoTask[],
   activeEvents: readonly Event[],
   slots: readonly TimeSlot[],

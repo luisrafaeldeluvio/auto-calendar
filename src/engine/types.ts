@@ -18,15 +18,14 @@ export interface Event {
   name: string;
   notes?: string;
 
-  start: number;
-  end: number;
+  start: number; // unix in ms
+  end: number; // unix in ms
 
   isBusy: boolean;
 }
 
 export interface Task extends Event {
   isDone: boolean;
-  isAutoScheduled: boolean;
 }
 
 export interface AutoTask extends Omit<Task, "start" | "end"> {
@@ -39,8 +38,8 @@ export interface AutoTask extends Omit<Task, "start" | "end"> {
     after: number;
   };
 
-  startDate: number;
-  dueDate: number;
+  startDate: number; // unix in ms
+  dueDate: number; // unix in ms
 
   start?: number;
   end?: number;

@@ -1,151 +1,139 @@
-import type { TimeSlot, Event, AutoTask } from "./types";
+import type { TimeSlot, Event, AutoTask, Task } from "./types";
+import { addDays, subDays, startOfDay, getTime } from "date-fns";
 
 export const slots: TimeSlot[] = [];
+
+// all the events
 export const events: Event[] = [
   {
-    id: "1",
-    name: "Morning Deep Work",
-    start: 300, // 5:00 AM
-    end: 420, // 7:00 AM
+    id: "e1",
+    name: "Team Standup",
+    start: 1740218400000, // Feb 22, 10:00 AM
+    end: 1740220200000, // Feb 22, 10:30 AM
     isBusy: true,
   },
   {
-    id: "2",
+    id: "e2",
+    name: "Deep Work: Engine Logic",
+    notes: "Focus on scheduler performance",
+    start: 1740304800000, // Feb 23, 10:00 AM
+    end: 1740315600000, // Feb 23, 1:00 PM
+    isBusy: true,
+  },
+  {
+    id: "e3",
     name: "Lunch Break",
-    start: 600, // 10:00 AM
-    end: 780, // 1:00 PM
+    start: 1740398400000, // Feb 24, 12:00 PM
+    end: 1740402000000, // Feb 24, 1:00 PM
     isBusy: false,
   },
   {
-    id: "3",
-    name: "Client Sync",
-    start: 1020, // 5:00 PM
-    end: 1260, // 9:00 PM
+    id: "e4",
+    name: "Client Call",
+    start: 1740495600000, // Feb 25, 3:00 PM
+    end: 1740499200000, // Feb 25, 4:00 PM
+    isBusy: true,
+  },
+  {
+    id: "e5",
+    name: "Gym Session",
+    start: 1740589200000, // Feb 26, 5:00 PM
+    end: 1740594600000, // Feb 26, 6:30 PM
     isBusy: true,
   },
 ];
 
-export const queuedTasks: AutoTask[] = [
-  { duration: 165, weight: 1 },
-  { duration: 127, weight: 1 },
-  { duration: 227, weight: 1 },
-  { duration: 102, weight: 1 },
-  { duration: 215, weight: 1 },
-  { duration: 18, weight: 1 },
-  { duration: 190, weight: 1 },
-  { duration: 196, weight: 1 },
-  { duration: 175, weight: 1 },
-  { duration: 21, weight: 1 },
-  { duration: 119, weight: 1 },
-  { duration: 104, weight: 1 },
-  { duration: 28, weight: 1 },
-  { duration: 188, weight: 1 },
-  { duration: 181, weight: 1 },
-  { duration: 92, weight: 1 },
-  { duration: 58, weight: 1 },
-  { duration: 134, weight: 1 },
-  { duration: 192, weight: 1 },
-  { duration: 5, weight: 1 },
-  { duration: 4, weight: 1 },
-  { duration: 172, weight: 1 },
-  { duration: 227, weight: 1 },
-  { duration: 178, weight: 1 },
-  { duration: 39, weight: 1 },
-  { duration: 131, weight: 1 },
-  { duration: 74, weight: 1 },
-  { duration: 120, weight: 1 },
-  { duration: 195, weight: 2 },
-  { duration: 102, weight: 2 },
-  { duration: 239, weight: 2 },
-  { duration: 177, weight: 2 },
-  { duration: 107, weight: 2 },
-  { duration: 84, weight: 2 },
-  { duration: 70, weight: 2 },
-  { duration: 33, weight: 2 },
-  { duration: 7, weight: 2 },
-  { duration: 42, weight: 2 },
-  { duration: 221, weight: 2 },
-  { duration: 66, weight: 2 },
-  { duration: 46, weight: 2 },
-  { duration: 206, weight: 2 },
-  { duration: 88, weight: 2 },
-  { duration: 223, weight: 2 },
-  { duration: 153, weight: 2 },
-  { duration: 202, weight: 2 },
-  { duration: 192, weight: 2 },
-  { duration: 211, weight: 2 },
-  { duration: 105, weight: 2 },
-  { duration: 165, weight: 2 },
-  { duration: 218, weight: 2 },
-  { duration: 28, weight: 2 },
-  { duration: 99, weight: 2 },
-  { duration: 136, weight: 3 },
-  { duration: 75, weight: 3 },
-  { duration: 179, weight: 3 },
-  { duration: 233, weight: 3 },
-  { duration: 128, weight: 3 },
-  { duration: 20, weight: 3 },
-  { duration: 115, weight: 3 },
-  { duration: 159, weight: 3 },
-  { duration: 174, weight: 3 },
-  { duration: 123, weight: 3 },
-  { duration: 5, weight: 3 },
-  { duration: 222, weight: 3 },
-  { duration: 73, weight: 3 },
-  { duration: 198, weight: 3 },
-  { duration: 109, weight: 3 },
-  { duration: 155, weight: 3 },
-  { duration: 192, weight: 3 },
-  { duration: 16, weight: 3 },
-  { duration: 118, weight: 3 },
-  { duration: 109, weight: 3 },
-  { duration: 190, weight: 3 },
-  { duration: 49, weight: 3 },
-  { duration: 157, weight: 3 },
-  { duration: 47, weight: 3 },
-  { duration: 120, weight: 3 },
-  { duration: 85, weight: 3 },
-  { duration: 232, weight: 3 },
-  { duration: 187, weight: 3 },
-  { duration: 140, weight: 3 },
-  { duration: 22, weight: 3 },
-  { duration: 148, weight: 4 },
-  { duration: 91, weight: 4 },
-  { duration: 24, weight: 4 },
-  { duration: 140, weight: 4 },
-  { duration: 39, weight: 4 },
-  { duration: 73, weight: 4 },
-  { duration: 35, weight: 4 },
-  { duration: 132, weight: 4 },
-  { duration: 11, weight: 4 },
-  { duration: 160, weight: 4 },
-  { duration: 66, weight: 4 },
-  { duration: 136, weight: 4 },
-  { duration: 18, weight: 4 },
-  { duration: 181, weight: 4 },
-  { duration: 42, weight: 4 },
-  { duration: 171, weight: 4 },
-  { duration: 146, weight: 4 },
+const today = startOfDay(new Date());
+
+export const tasks: AutoTask[] = [
+  {
+    id: "at-before",
+    name: "Completed Yesterday (No Overlap)",
+    duration: 60,
+    weight: 1,
+    slotId: "slot-admin",
+    buffer: { before: 0, after: 0 },
+    startDate: getTime(subDays(today, 5)),
+    dueDate: getTime(subDays(today, 2)), // Ends before test range starts
+    start: 540,
+    end: 600,
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "at-overlap-start",
+    name: "Started Early, Due Mid-Week (Starts Before, Ends During)",
+    duration: 120,
+    weight: 3,
+    slotId: "slot-work",
+    buffer: { before: 15, after: 15 },
+    startDate: getTime(subDays(today, 1)),
+    dueDate: getTime(addDays(today, 1)), // Overlaps the beginning of the range
+    start: 540,
+    end: 660,
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "at-inside",
+    name: "Specific Mid-Week Task (Fully Inside)",
+    duration: 45,
+    weight: 2,
+    slotId: "slot-personal",
+    buffer: { before: 10, after: 10 },
+    startDate: getTime(addDays(today, 1)),
+    dueDate: getTime(addDays(today, 2)), // Fully contained within a 3-day window
+    start: 1020,
+    end: 1065,
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "at-overlap-end",
+    name: "Late Week Sprint (Starts During, Ends After)",
+    duration: 180,
+    weight: 4,
+    slotId: "slot-work",
+    buffer: { before: 20, after: 20 },
+    startDate: getTime(addDays(today, 2)),
+    dueDate: getTime(addDays(today, 5)), // Overlaps the end of the range
+    start: 540,
+    end: 720,
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "at-after",
+    name: "Next Month Planning (No Overlap)",
+    duration: 60,
+    weight: 1,
+    slotId: "slot-admin",
+    buffer: { before: 0, after: 0 },
+    startDate: getTime(addDays(today, 10)),
+    dueDate: getTime(addDays(today, 12)), // Starts well after the test range
+    start: 900,
+    end: 960,
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "at-encompassing",
+    name: "Long Term Project (Encompassing)",
+    duration: 480,
+    weight: 4,
+    slotId: "slot-work",
+    buffer: { before: 30, after: 30 },
+    startDate: getTime(subDays(today, 10)),
+    dueDate: getTime(addDays(today, 10)), // Starts before AND ends after the entire range
+    start: 480,
+    end: 960,
+    isDone: false,
+    isBusy: true,
+  },
 ];
 
-// Array.from({ length: 100 }, (_, i) => {
-//   const rand = Math.floor(Math.random() * 4) + 1;
-//   return {
-//     // id: crypto.randomUUID(),
-//     duration: Math.floor(Math.random() * 240),
-//     weight: rand as 1 | 2 | 3 | 4,
-//     // isAutoScheduled: true,
-//     // name: `Task ${i + 1}`,
-//     // description: "",
-//     // isBusy: true,
-//     // isDone: true,
-//     // buffer: { before: 0, after: 0 },
-//   };
-// });
+// the id of tasks to be scheduled
+export const queuedTasks: string[] = [];
 
+// the id of the tasks that have been scheduled
 export const scheduledTasks: AutoTask[] = [];
-
-// we need another array for task queue (where newly created task will go and tasks than
-//     can't be scheduled) and a scheduled task array for tasks that already has a schedule.
-
-//     and another array for events that is in the selected period (2 weeks)

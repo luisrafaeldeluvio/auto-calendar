@@ -1,49 +1,91 @@
-import type { TimeSlot, Event, AutoTask, Task } from "./types";
-import { addDays, subDays, startOfDay, getTime } from "date-fns";
+import type { TimeSlot, Event, AutoTask } from "./types";
+import {
+  addDays,
+  subDays,
+  startOfDay,
+  setHours,
+  setMinutes,
+  getTime,
+  startOfWeek,
+} from "date-fns";
 
 export const slots: TimeSlot[] = [];
 
-// all the events
-export const events: Event[] = [
+const today = startOfDay(new Date());
+const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 });
+
+export const mockEvents: Event[] = [
   {
-    id: "e1",
-    name: "Team Standup",
-    start: 1740218400000, // Feb 22, 10:00 AM
-    end: 1740220200000, // Feb 22, 10:30 AM
+    id: "ev-1",
+    name: "Monday Morning Sync",
+    start: getTime(setHours(setMinutes(startOfCurrentWeek, 0), 9)),
+    end: getTime(setHours(setMinutes(startOfCurrentWeek, 0), 10)),
     isBusy: true,
   },
   {
-    id: "e2",
-    name: "Deep Work: Engine Logic",
-    notes: "Focus on scheduler performance",
-    start: 1740304800000, // Feb 23, 10:00 AM
-    end: 1740315600000, // Feb 23, 1:00 PM
+    id: "ev-2", // Overlaps 'at-encompassing'
+    name: "Deep Work: Project Alpha",
+    start: getTime(setHours(addDays(startOfCurrentWeek, 1), 10)),
+    end: getTime(setHours(addDays(startOfCurrentWeek, 1), 14)),
     isBusy: true,
   },
   {
-    id: "e3",
-    name: "Lunch Break",
-    start: 1740398400000, // Feb 24, 12:00 PM
-    end: 1740402000000, // Feb 24, 1:00 PM
+    id: "ev-3",
+    name: "Quick Coffee Catch-up",
+    start: getTime(setHours(addDays(startOfCurrentWeek, 1), 13)),
+    end: getTime(setHours(addDays(startOfCurrentWeek, 1), 16)), // Overlaps ev-2
     isBusy: false,
   },
   {
-    id: "e4",
-    name: "Client Call",
-    start: 1740495600000, // Feb 25, 3:00 PM
-    end: 1740499200000, // Feb 25, 4:00 PM
+    id: "ev-4", // Overlaps 'at-overlap-start'
+    name: "Client Review Meeting",
+    start: getTime(setHours(addDays(startOfCurrentWeek, 4), 14)),
+    end: getTime(setHours(addDays(startOfCurrentWeek, 4), 16)),
     isBusy: true,
   },
   {
-    id: "e5",
+    id: "ev-5",
+    name: "Lunch Break",
+    start: getTime(setHours(addDays(startOfCurrentWeek, 4), 12)),
+    end: getTime(setHours(addDays(startOfCurrentWeek, 4), 13)),
+    isBusy: false,
+  },
+  {
+    id: "ev-6", // Overlaps 'at-inside'
+    name: "Emergency Server Maintenance",
+    start: getTime(setHours(addDays(today, 1), 16)),
+    end: getTime(setHours(addDays(today, 1), 18)),
+    isBusy: true,
+  },
+  {
+    id: "ev-7",
+    name: "Team Brainstorming",
+    start: getTime(setHours(addDays(today, 1), 17)),
+    end: getTime(setHours(addDays(today, 1), 19)), // Overlaps ev-6
+    isBusy: true,
+  },
+  {
+    id: "ev-8",
     name: "Gym Session",
-    start: 1740589200000, // Feb 26, 5:00 PM
-    end: 1740594600000, // Feb 26, 6:30 PM
+    start: getTime(setHours(addDays(startOfCurrentWeek, 2), 18)),
+    end: getTime(setHours(addDays(startOfCurrentWeek, 2), 19)),
+    isBusy: false,
+  },
+  {
+    id: "ev-9", // Near 'at-overlap-end'
+    name: "Final Sprint Planning",
+    start: getTime(setHours(addDays(today, 2), 9)),
+    end: getTime(setHours(addDays(today, 2), 11)),
+    isBusy: true,
+  },
+  {
+    id: "ev-10",
+    name: "Weekly Wrap-up",
+    start: getTime(setHours(today, 16)),
+    end: getTime(setHours(today, 17)),
     isBusy: true,
   },
 ];
-
-const today = startOfDay(new Date());
 
 export const tasks: AutoTask[] = [
   {
@@ -51,7 +93,7 @@ export const tasks: AutoTask[] = [
     name: "Completed Yesterday (No Overlap)",
     duration: 60,
     weight: 1,
-    slotId: "slot-admin",
+    slotId: "1",
     buffer: { before: 0, after: 0 },
     startDate: getTime(subDays(today, 5)),
     dueDate: getTime(subDays(today, 2)), // Ends before test range starts
@@ -65,7 +107,7 @@ export const tasks: AutoTask[] = [
     name: "Started Early, Due Mid-Week (Starts Before, Ends During)",
     duration: 120,
     weight: 3,
-    slotId: "slot-work",
+    slotId: "1",
     buffer: { before: 15, after: 15 },
     startDate: getTime(subDays(today, 1)),
     dueDate: getTime(addDays(today, 1)), // Overlaps the beginning of the range
@@ -79,7 +121,7 @@ export const tasks: AutoTask[] = [
     name: "Specific Mid-Week Task (Fully Inside)",
     duration: 45,
     weight: 2,
-    slotId: "slot-personal",
+    slotId: "1",
     buffer: { before: 10, after: 10 },
     startDate: getTime(addDays(today, 1)),
     dueDate: getTime(addDays(today, 2)), // Fully contained within a 3-day window
@@ -93,7 +135,7 @@ export const tasks: AutoTask[] = [
     name: "Late Week Sprint (Starts During, Ends After)",
     duration: 180,
     weight: 4,
-    slotId: "slot-work",
+    slotId: "1",
     buffer: { before: 20, after: 20 },
     startDate: getTime(addDays(today, 2)),
     dueDate: getTime(addDays(today, 5)), // Overlaps the end of the range
@@ -107,7 +149,7 @@ export const tasks: AutoTask[] = [
     name: "Next Month Planning (No Overlap)",
     duration: 60,
     weight: 1,
-    slotId: "slot-admin",
+    slotId: "1",
     buffer: { before: 0, after: 0 },
     startDate: getTime(addDays(today, 10)),
     dueDate: getTime(addDays(today, 12)), // Starts well after the test range
@@ -121,7 +163,7 @@ export const tasks: AutoTask[] = [
     name: "Long Term Project (Encompassing)",
     duration: 480,
     weight: 4,
-    slotId: "slot-work",
+    slotId: "1",
     buffer: { before: 30, after: 30 },
     startDate: getTime(subDays(today, 10)),
     dueDate: getTime(addDays(today, 10)), // Starts before AND ends after the entire range

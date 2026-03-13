@@ -16,16 +16,23 @@ interface Range {
 interface Timespan {
   id: string;
   range: Range;
-  agenda: Record<number, string[]>; // <unix, id[]>
+  agenda: Record<
+    number,
+    {
+      tasks: AutoTask[];
+      queue: AutoTask[];
+    }
+  >; // <unix, id[]>
 }
 
-const newTimespan = (currentDate: number) => {
+const newTimespan = (tasks: readonly AutoTask[], currentDate: number) => {
   const weekStart = getTime(startOfWeek(currentDate));
+  const range = { start: weekStart, end: weekStart + 547200000 };
 
   const timespan: Timespan = {
     id: crypto.randomUUID(),
-    range: { start: weekStart, end: weekStart + 547200000 },
-    agenda: [],
+    range: range,
+    agenda: generateAgenda(tasks, range),
   };
 
   return timespan;
@@ -68,16 +75,10 @@ const getActiveTasks = (tasks: readonly AutoTask[], range: Readonly<Range>) =>
     areIntervalsOverlapping(range)({ start: t.startDate, end: t.dueDate }),
   );
 
-// this is actually ok, the agenda will have all the ids of tasks that is in the week's range.
-// we just need to sort them first. but how will we do that?
-// do we set their date as the start date? or the due date? should the tasks have a specified
-// date type instead of just start and end?
-
-// maybe we can just put it their date as their start date? but on the sorting, if
-// it's already filled up, it will return a queueu of rejected tasks to be reused.
-// so maybe we move their start date up. do we update the tasks due date? probably not.
-// what if we just move it on the agenda only? would that work? i think so. But what if we
-// edit the task, the agenda should be removed/ moved depending on the edit instead.
+const getRange = (currentDate: number) => {
+  const weekStart = getTime(startOfWeek(currentDate));
+  return { start: weekStart, end: weekStart + 547200000 };
+};
 
 const generateAgenda = (tasks: readonly AutoTask[], range: Readonly<Range>) => {
   const rangeArr = eachDayOfInterval(range);
@@ -91,51 +92,48 @@ const generateAgenda = (tasks: readonly AutoTask[], range: Readonly<Range>) => {
         if (rank >= targetDay) return true;
       });
 
-      return { ...acc, [getTime(r)]: ranked };
+      return {
+        ...acc,
+        [getTime(r)]: {
+          tasks: [],
+          queue: ranked,
+        },
+      };
     },
-    {} as Record<number, AutoTask[]>,
+    {} as Record<
+      number,
+      {
+        tasks: AutoTask[];
+        queue: AutoTask[];
+      }
+    >,
   );
 
   return agenda;
 };
+// TODO:
+// - [ ] try to create a function that displays them on the calendar
+// - [ ]  we need to create a function for organiing them first
 
-// lets put each tasks on an key value, wher the key is a date.
-// events  will be decided by their due date and priority
+const activeTasks = getActiveTasks(tasks, getRange(getTime(new Date())));
 
-// say the selected day is monday, so it has value of 1.
-// the tasks priority is normal, which is 1
-// then the due date is also on monday, we reduce it ? 1-1 = 0
+const timespan = newTimespan(activeTasks, Date.now());
 
-// another task: priority is normal
-// due date is isTuesday, 2 = 1-2 = -1
+//temporary placeholder
+const getTask = (id: string) => tasks.filter((t) => t.id === id);
 
-// so this means that that it will prioritize the first task 0 > -1
-
-// process
-
-const timespan = newTimespan(Date.now());
-export const activeTasks = getActiveTasks(tasks, timespan.range);
-
-export const scheduled = scheduleTasks(
-  activeTasks,
-  [],
-  [
-    {
-      id: "1",
-      name: "ALL DAY",
-      start: 0,
-      end: 1440,
-    },
-  ],
-);
-
-// then auto schedule it
-// then try making it show on ui
-
-console.log(
-  // JSON.stringify(scheduled, null, 2),
-  JSON.stringify(generateAgenda(tasks, timespan.range), null, 2),
-);
+// scheduleTasks(
+//   activeTasks,
+//   [],
+//   [
+//     {
+//       id: "1",
+//       name: "ALL DAY",
+//       start: 0,
+//       end: 1440,
+//     },
+//   ],
+// );
 
 // const y = newTimespan(getTime(new Date()));
 

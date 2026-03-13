@@ -122,18 +122,16 @@ const generateAgenda = (tasks: readonly AutoTask[], range: Readonly<Range>) => {
 
   const agenda = rangeArr.reduce(
     (acc, r) => {
-      const ranked = tasks
-        .filter((t) => {
-          const rank = t.weight - getDay(t.dueDate);
-          const targetDay = getDay(r) - 1;
+      const ranked = tasks.filter((t) => {
+        const rank = t.weight - getDay(t.dueDate);
+        const targetDay = getDay(r) - 1;
 
-          if (rank >= targetDay) return true;
-        })
-        .map((t) => t.id);
+        if (rank >= targetDay) return true;
+      });
 
       return { ...acc, [getTime(r)]: ranked };
     },
-    {} as Record<number, string[]>,
+    {} as Record<number, AutoTask[]>,
   );
 
   return agenda;

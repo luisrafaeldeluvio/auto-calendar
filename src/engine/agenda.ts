@@ -7,22 +7,25 @@ import {
 import type { AutoTask } from "./types";
 import { tasks } from "./mock-data";
 import { getTime } from "date-fns";
+import { scheduleTasks } from "./auto-schedule";
 
 interface Range {
   start: number;
   end: number;
 }
 
+type Agenda = Record<
+  string,
+  {
+    tasks: AutoTask[];
+    queue: AutoTask[];
+  }
+>;
+
 interface Timespan {
   id: string;
   range: Range;
-  agenda: Record<
-    number,
-    {
-      tasks: AutoTask[];
-      queue: AutoTask[];
-    }
-  >; // <unix, id[]>
+  agenda: Agenda;
 }
 
 const newTimespan = (tasks: readonly AutoTask[], currentDate: number) => {
@@ -111,16 +114,58 @@ const generateAgenda = (tasks: readonly AutoTask[], range: Readonly<Range>) => {
 
   return agenda;
 };
-// TODO:
-// - [ ] try to create a function that displays them on the calendar
-// - [ ]  we need to create a function for organiing them first
+
+// ----------------------------
 
 const activeTasks = getActiveTasks(tasks, getRange(getTime(new Date())));
 
-const timespan = newTimespan(activeTasks, Date.now());
+export const timespan = newTimespan(activeTasks, Date.now());
 
-//temporary placeholder
 const getTask = (id: string) => tasks.filter((t) => t.id === id);
+
+const scheduleTimespan = (timespan: Readonly<Timespan>) => {
+  const newAgenda: Agenda = Object.entries(timespan.agenda).reduce(
+    (acc, [day, { tasks, queue }]) => {
+      const scheduled = scheduleTasks(
+        queue,
+        [],
+        [
+          {
+            id: "1",
+            name: "ALL DAY",
+            start: 0,
+            end: 1440,
+          },
+        ],
+      );
+
+      if (scheduled.ok) {
+        return {
+          ...acc,
+          [day]: {
+            tasks: scheduled.data.tasks,
+            queue: scheduled.data.queue,
+          },
+        };
+      } else {
+        return {
+          ...acc,
+          [day]: {
+            tasks: tasks,
+            queue: queue,
+          },
+        };
+      }
+    },
+    {} as Agenda,
+  );
+
+  return { ...timespan, agenda: newAgenda } as Timespan;
+};
+
+export const scheduledTimespan = scheduleTimespan(timespan);
+
+// console.log(JSON.stringify(scheduleTimespan(timespan), null, 2));
 
 // scheduleTasks(
 //   activeTasks,
@@ -140,3 +185,21 @@ const getTask = (id: string) => tasks.filter((t) => t.id === id);
 // console.time("heavy-task");
 // const x = getActiveTasks(tasks, y.range);
 // console.timeEnd("heavy-task");
+
+// ----------------------------------------
+
+// now i need to make a function for sorting the tasks with autoSchedule()
+// they will still be in the timespan object, just sorted. That means that
+// I will need to create a new timespan object when doing that (fp).
+
+// But then how will it be displayed, since the start and time of tasks in ms since 00:00
+// when rendering the task in the Calendar, i just need to add the value of their key dates
+// to their start and time.
+
+// So essentially, the time changes will only be displayed on the front end.
+
+// -----------------
+
+// TODO:
+// - [ ] try to create a function that displays them on the calendar
+// - [ ]  we need to create a function for organiing them first

@@ -43,8 +43,10 @@ const createScheduleWindow = (
 };
 
 const createDateInterval = (currentDate: number) => {
+  const DATE_INTERVAL_MAX = 518400000 as const; // 6 days in ms.
   const weekStart = getTime(startOfWeek(currentDate));
-  return { start: weekStart, end: weekStart + 547200000 };
+
+  return { start: weekStart, end: weekStart + DATE_INTERVAL_MAX };
 };
 
 const getTasksInInterval = (
@@ -140,3 +142,5 @@ const activeTasks = getTasksInInterval(
 export const timespan = createScheduleWindow(activeTasks, Date.now());
 
 export const scheduledScheduleWindow = sortScheduleWindow(timespan);
+
+// now add error checkers, those "ok" like in autoschedule

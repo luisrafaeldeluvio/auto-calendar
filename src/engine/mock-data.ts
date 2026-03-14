@@ -97,8 +97,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 0, after: 0 },
     startDate: getTime(subDays(today, 5)),
     dueDate: getTime(subDays(today, 2)), // Ends before test range starts
-    start: 540,
-    end: 600,
     isDone: false,
     isBusy: true,
   },
@@ -111,8 +109,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 15, after: 15 },
     startDate: getTime(subDays(today, 1)),
     dueDate: getTime(addDays(today, 1)), // Overlaps the beginning of the range
-    start: 540,
-    end: 660,
     isDone: false,
     isBusy: true,
   },
@@ -125,8 +121,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 10, after: 10 },
     startDate: getTime(addDays(today, 1)),
     dueDate: getTime(addDays(today, 2)), // Fully contained within a 3-day window
-    start: 1020,
-    end: 1065,
     isDone: false,
     isBusy: true,
   },
@@ -139,8 +133,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 20, after: 20 },
     startDate: getTime(addDays(today, 2)),
     dueDate: getTime(addDays(today, 5)), // Overlaps the end of the range
-    start: 540,
-    end: 720,
     isDone: false,
     isBusy: true,
   },
@@ -153,8 +145,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 0, after: 0 },
     startDate: getTime(addDays(today, 10)),
     dueDate: getTime(addDays(today, 12)), // Starts well after the test range
-    start: 900,
-    end: 960,
     isDone: false,
     isBusy: true,
   },
@@ -167,8 +157,6 @@ export const tasks: AutoTask[] = [
     buffer: { before: 30, after: 30 },
     startDate: getTime(subDays(today, 10)),
     dueDate: getTime(addDays(today, 10)), // Starts before AND ends after the entire range
-    start: 480,
-    end: 960,
     isDone: false,
     isBusy: true,
   },

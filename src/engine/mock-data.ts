@@ -9,7 +9,26 @@ import {
   startOfWeek,
 } from "date-fns";
 
-export const slots: TimeSlot[] = [];
+export const slots: TimeSlot[] = [
+  {
+    id: "1",
+    name: "whole day",
+    start: 0,
+    end: 1440,
+  },
+  {
+    id: "2",
+    name: "day",
+    start: 360,
+    end: 720,
+  },
+  {
+    id: "3",
+    name: "night",
+    start: 720,
+    end: 1440,
+  },
+];
 
 const today = startOfDay(new Date());
 const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 });
@@ -105,7 +124,7 @@ export const tasks: AutoTask[] = [
     name: "Started Early, Due Mid-Week (Starts Before, Ends During)",
     duration: 120,
     weight: 3,
-    slotId: "1",
+    slotId: "2",
     buffer: { before: 15, after: 15 },
     startDate: getTime(subDays(today, 1)),
     dueDate: getTime(addDays(today, 1)), // Overlaps the beginning of the range
@@ -117,7 +136,7 @@ export const tasks: AutoTask[] = [
     name: "Specific Mid-Week Task (Fully Inside)",
     duration: 45,
     weight: 2,
-    slotId: "1",
+    slotId: "3",
     buffer: { before: 10, after: 10 },
     startDate: getTime(addDays(today, 1)),
     dueDate: getTime(addDays(today, 2)), // Fully contained within a 3-day window
@@ -129,7 +148,7 @@ export const tasks: AutoTask[] = [
     name: "Late Week Sprint (Starts During, Ends After)",
     duration: 180,
     weight: 4,
-    slotId: "1",
+    slotId: "2",
     buffer: { before: 20, after: 20 },
     startDate: getTime(addDays(today, 2)),
     dueDate: getTime(addDays(today, 5)), // Overlaps the end of the range
@@ -141,7 +160,7 @@ export const tasks: AutoTask[] = [
     name: "Next Month Planning (No Overlap)",
     duration: 60,
     weight: 1,
-    slotId: "1",
+    slotId: "2",
     buffer: { before: 0, after: 0 },
     startDate: getTime(addDays(today, 10)),
     dueDate: getTime(addDays(today, 12)), // Starts well after the test range
@@ -153,7 +172,7 @@ export const tasks: AutoTask[] = [
     name: "Long Term Project (Encompassing)",
     duration: 480,
     weight: 4,
-    slotId: "1",
+    slotId: "3",
     buffer: { before: 30, after: 30 },
     startDate: getTime(subDays(today, 10)),
     dueDate: getTime(addDays(today, 10)), // Starts before AND ends after the entire range

@@ -41,33 +41,38 @@ const createAutoTaskMap = (
 ) => {
   const dateIntervalArr = eachDayOfInterval(dateInterval);
 
-  return dateIntervalArr.reduce((acc, r) => {
-    const ranked = tasks.filter((t) => {
-      const rank = t.weight - getDay(t.dueDate);
-      const targetDay = getDay(r) - 1;
+  const x = dateIntervalArr.reduce(
+    (acc, r) => {
+      const ranked = tasks.filter((t) => {
+        if (acc.rankedTaskPool.includes(t)) return false;
+        const rank = t.weight - getDay(t.dueDate);
+        const targetDay = getDay(r) - 1;
 
-      if (rank >= targetDay) return true;
-    });
+        if (rank >= targetDay) return true;
+      });
 
-    return {
-      ...acc,
-      [getTime(r)]: {
-        tasks: [],
-        queue: ranked,
-      },
-    };
-  }, {} as AutoTaskMap);
+      return {
+        result: {
+          ...acc.result,
+          [getTime(r)]: {
+            tasks: [],
+            queue: ranked,
+          },
+        },
+        rankedTaskPool: [...acc.rankedTaskPool, ...ranked],
+      };
+    },
+    {
+      result: {},
+      rankedTaskPool: [],
+    } as {
+      result: AutoTaskMap;
+      rankedTaskPool: AutoTask[];
+    },
+  );
+
+  return x.result;
 };
-// it seems that every queue of the map has the same copy of the tasks.
-// so the problem is in createAutoTaskMap
-// it could be a problem in the ranked
-// wait it is the problem with the rank!!!
-// its because were just filtering the same tasks Array.
-// so even though we already used a task in a dateFnsLocalizer, it is still being used
-// to solve this, we need to createa another variable for getting the tasks, and everytime we use
-// the tasks there, we remove it from the Array.; but wouldnt that make it impure?
-
-// try putting the ranking on another function first, i swear this can be fixed by using recursions
 
 const createScheduleWindow = (
   tasksInInterval: readonly AutoTask[],

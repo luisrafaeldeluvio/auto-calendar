@@ -42,14 +42,24 @@ const createAutoTaskMap = (
   const dateIntervalArr = eachDayOfInterval(dateInterval);
 
   const x = dateIntervalArr.reduce(
-    (acc, r) => {
+    (acc, r, i) => {
+      console.log("index: ", i);
       const ranked = tasks.filter((t) => {
         if (acc.rankedTaskPool.includes(t)) return false;
         const rank = t.weight - getDay(t.dueDate);
-        const targetDay = getDay(r) - 1;
+        const targetDay = Math.min(getDay(r), 6);
 
-        if (rank >= targetDay) return true;
+        console.log("targetDay: ", targetDay);
+        // the problem is targetDay, its supposed to change
+
+        console.log(rank, " within ", targetDay - 6, " and ", targetDay + 1);
+
+        if (rank >= targetDay - 6 && rank <= targetDay + 1) return true; // this is also probably wrong too.
       });
+
+      // ok so i think its working now, but it just add its to the same day, which is not intended.
+      // maybe we should implement a cutoff of sort? like dont add the tasks within a specific below range
+      // then rerank that tasks.
 
       return {
         result: {
@@ -79,6 +89,8 @@ const createScheduleWindow = (
   currentDate: number,
 ) => {
   const dateInterval = createDateInterval(currentDate);
+
+  console.log(createAutoTaskMap(tasksInInterval, dateInterval));
 
   return {
     id: crypto.randomUUID(),
@@ -144,3 +156,5 @@ export const scheduledScheduleWindow = sortScheduleWindow(
   mockEvents,
   slots,
 );
+
+console.log(scheduledScheduleWindow);

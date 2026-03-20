@@ -6,7 +6,7 @@ import {
 } from "date-fns/fp";
 import type { AutoTask, TimeSlot, Event } from "./types";
 import { mockEvents, slots, tasks } from "./mock-data";
-import { getTime } from "date-fns";
+import { getTime, isThisQuarter } from "date-fns";
 import { scheduleTasks } from "./auto-schedule";
 
 interface DateInterval {
@@ -42,24 +42,15 @@ const createAutoTaskMap = (
   const dateIntervalArr = eachDayOfInterval(dateInterval);
 
   const x = dateIntervalArr.reduce(
-    (acc, r, i) => {
-      console.log("index: ", i);
-      const ranked = tasks.filter((t) => {
+    (acc, r) => {
+      const ranked = tasks.filter((t, index) => {
         if (acc.rankedTaskPool.includes(t)) return false;
+
         const rank = t.weight - getDay(t.dueDate);
-        const targetDay = Math.min(getDay(r), 6);
+        const targetDay = Math.min(getDay(r) + index, 6);
 
-        console.log("targetDay: ", targetDay);
-        // the problem is targetDay, its supposed to change
-
-        console.log(rank, " within ", targetDay - 6, " and ", targetDay + 1);
-
-        if (rank >= targetDay - 6 && rank <= targetDay + 1) return true; // this is also probably wrong too.
+        if (rank > 0 || rank < -2 + targetDay) return true;
       });
-
-      // ok so i think its working now, but it just add its to the same day, which is not intended.
-      // maybe we should implement a cutoff of sort? like dont add the tasks within a specific below range
-      // then rerank that tasks.
 
       return {
         result: {
@@ -89,8 +80,6 @@ const createScheduleWindow = (
   currentDate: number,
 ) => {
   const dateInterval = createDateInterval(currentDate);
-
-  console.log(createAutoTaskMap(tasksInInterval, dateInterval));
 
   return {
     id: crypto.randomUUID(),
@@ -156,5 +145,3 @@ export const scheduledScheduleWindow = sortScheduleWindow(
   mockEvents,
   slots,
 );
-
-console.log(scheduledScheduleWindow);

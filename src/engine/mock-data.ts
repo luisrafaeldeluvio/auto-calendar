@@ -25,13 +25,13 @@ export const slots: TimeSlot[] = [
   {
     id: "3",
     name: "night",
-    start: 720,
+    start: 960,
     end: 1440,
   },
 ];
 
 const today = startOfDay(new Date());
-const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 });
+const startOfCurrentWeek = startOfWeek(today);
 
 export const mockEvents: Event[] = [
   {
@@ -108,74 +108,195 @@ export const mockEvents: Event[] = [
 
 export const tasks: AutoTask[] = [
   {
-    id: "at-before",
-    name: "Completed Yesterday (No Overlap)",
+    id: "task1",
+    name: "Task 1",
     duration: 60,
     weight: 1,
-    slotId: "1",
+    slotId: "3",
     buffer: { before: 0, after: 0 },
-    startDate: getTime(subDays(today, 5)),
-    dueDate: getTime(subDays(today, 2)), // Ends before test range starts
+    startDate: getTime(subDays(startOfCurrentWeek, 1)), // Saturday
+    dueDate: getTime(addDays(startOfCurrentWeek, 1)), // Monday
     isDone: false,
     isBusy: true,
   },
   {
-    id: "at-overlap-start",
-    name: "Started Early, Due Mid-Week (Starts Before, Ends During)",
+    id: "task2",
+    name: "Task 2",
     duration: 120,
     weight: 3,
-    slotId: "2",
+    slotId: "3",
     buffer: { before: 15, after: 15 },
-    startDate: getTime(subDays(today, 1)),
-    dueDate: getTime(addDays(today, 1)), // Overlaps the beginning of the range
+    startDate: getTime(addDays(startOfCurrentWeek, 0)), // Sunday
+    dueDate: getTime(addDays(startOfCurrentWeek, 3)), // Wednesday
     isDone: false,
     isBusy: true,
   },
   {
-    id: "at-inside",
-    name: "Specific Mid-Week Task (Fully Inside)",
+    id: "task3",
+    name: "Task 3",
     duration: 45,
     weight: 2,
     slotId: "3",
     buffer: { before: 10, after: 10 },
-    startDate: getTime(addDays(today, 1)),
-    dueDate: getTime(addDays(today, 2)), // Fully contained within a 3-day window
+    startDate: getTime(addDays(startOfCurrentWeek, 2)), // Tuesday
+    dueDate: getTime(addDays(startOfCurrentWeek, 4)), // Thursday
     isDone: false,
     isBusy: true,
   },
   {
-    id: "at-overlap-end",
-    name: "Late Week Sprint (Starts During, Ends After)",
+    id: "task4",
+    name: "Task 4",
     duration: 180,
     weight: 4,
-    slotId: "2",
+    slotId: "3",
     buffer: { before: 20, after: 20 },
-    startDate: getTime(addDays(today, 2)),
-    dueDate: getTime(addDays(today, 5)), // Overlaps the end of the range
+    startDate: getTime(addDays(startOfCurrentWeek, 4)), // Thursday
+    dueDate: getTime(addDays(startOfCurrentWeek, 6)), // Saturday
     isDone: false,
     isBusy: true,
   },
   {
-    id: "at-after",
-    name: "Next Month Planning (No Overlap)",
+    id: "task5",
+    name: "Task 5",
     duration: 60,
     weight: 1,
-    slotId: "2",
+    slotId: "3",
     buffer: { before: 0, after: 0 },
-    startDate: getTime(addDays(today, 10)),
-    dueDate: getTime(addDays(today, 12)), // Starts well after the test range
+    startDate: getTime(addDays(startOfCurrentWeek, 3)), // Wednesday
+    dueDate: getTime(addDays(startOfCurrentWeek, 5)), // Friday
     isDone: false,
     isBusy: true,
   },
   {
-    id: "at-encompassing",
-    name: "Long Term Project (Encompassing)",
+    id: "task6",
+    name: "Task 6",
     duration: 480,
     weight: 4,
     slotId: "3",
     buffer: { before: 30, after: 30 },
-    startDate: getTime(subDays(today, 10)),
-    dueDate: getTime(addDays(today, 10)), // Starts before AND ends after the entire range
+    startDate: getTime(addDays(startOfCurrentWeek, 0)), // Sunday
+    dueDate: getTime(addDays(startOfCurrentWeek, 6)), // Saturday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task7",
+    name: "Task 7",
+    duration: 60,
+    weight: 1,
+    slotId: "3",
+    buffer: { before: 0, after: 0 },
+    startDate: getTime(subDays(startOfCurrentWeek, 1)), // Saturday
+    dueDate: getTime(addDays(startOfCurrentWeek, 1)), // Monday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task8",
+    name: "Task 8",
+    duration: 120,
+    weight: 3,
+    slotId: "3",
+    buffer: { before: 15, after: 15 },
+    startDate: getTime(addDays(startOfCurrentWeek, 0)), // Sunday
+    dueDate: getTime(addDays(startOfCurrentWeek, 3)), // Wednesday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task9",
+    name: "Task 9",
+    duration: 45,
+    weight: 2,
+    slotId: "3",
+    buffer: { before: 10, after: 10 },
+    startDate: getTime(addDays(startOfCurrentWeek, 2)), // Tuesday
+    dueDate: getTime(addDays(startOfCurrentWeek, 4)), // Thursday
+    isDone: false,
+    isBusy: true,
+  },
+  // Additional tasks
+  {
+    id: "task10",
+    name: "Task 10 (Full Week Coverage)",
+    duration: 300,
+    weight: 4,
+    slotId: "3",
+    buffer: { before: 30, after: 30 },
+    startDate: getTime(subDays(startOfCurrentWeek, 1)), // Saturday (before week starts)
+    dueDate: getTime(addDays(startOfCurrentWeek, 6)), // Saturday (end of week)
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task11",
+    name: "Task 11 (Mid-Week Sprint)",
+    duration: 180,
+    weight: 3,
+    slotId: "3",
+    buffer: { before: 20, after: 20 },
+    startDate: getTime(addDays(startOfCurrentWeek, 1)), // Monday
+    dueDate: getTime(addDays(startOfCurrentWeek, 5)), // Friday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task12",
+    name: "Task 12 (Late Week Push)",
+    duration: 90,
+    weight: 2,
+    slotId: "3",
+    buffer: { before: 5, after: 5 },
+    startDate: getTime(addDays(startOfCurrentWeek, 3)), // Wednesday
+    dueDate: getTime(addDays(startOfCurrentWeek, 6)), // Saturday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task13",
+    name: "Task 13 (Early Week Quickie)",
+    duration: 30,
+    weight: 1,
+    slotId: "3",
+    buffer: { before: 0, after: 0 },
+    startDate: getTime(subDays(startOfCurrentWeek, 1)), // Saturday
+    dueDate: getTime(addDays(startOfCurrentWeek, 2)), // Tuesday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task14",
+    name: "Task 14 (Weekend Wrap-up)",
+    duration: 60,
+    weight: 1,
+    slotId: "3",
+    buffer: { before: 10, after: 10 },
+    startDate: getTime(addDays(startOfCurrentWeek, 5)), // Friday
+    dueDate: getTime(addDays(startOfCurrentWeek, 6)), // Saturday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task15",
+    name: "Task 15 (Sunday-Monday Blitz)",
+    duration: 75,
+    weight: 2,
+    slotId: "3",
+    buffer: { before: 5, after: 5 },
+    startDate: getTime(addDays(startOfCurrentWeek, 0)), // Sunday
+    dueDate: getTime(addDays(startOfCurrentWeek, 1)), // Monday
+    isDone: false,
+    isBusy: true,
+  },
+  {
+    id: "task16",
+    name: "Task 16 (Tiny Tuesday Task)",
+    duration: 15,
+    weight: 1,
+    slotId: "3",
+    buffer: { before: 0, after: 0 },
+    startDate: getTime(addDays(startOfCurrentWeek, 2)), // Tuesday
+    dueDate: getTime(addDays(startOfCurrentWeek, 3)), // Wednesday
     isDone: false,
     isBusy: true,
   },

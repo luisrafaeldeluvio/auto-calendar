@@ -44,13 +44,6 @@ const formatTasks = (
   return formattedTask;
 };
 
-// console.log("length of map", scheduledScheduleWindow.autoTaskMap);
-// // it seems that every queue of the map has the same copy of the tasks.
-
-// console.log(
-//   JSON.stringify(formatTasks(scheduledScheduleWindow.autoTaskMap), null, 2),
-// );
-
 const x = formatTasks(scheduledScheduleWindow.autoTaskMap).map((t) => {
   return {
     title: t.name,

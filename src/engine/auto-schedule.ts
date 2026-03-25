@@ -1,5 +1,5 @@
 import type { AutoTask, Result, Event, TimeSlot } from "./types";
-import { events, queuedTasks, slots } from "./mock-data";
+import { queuedTasks, slots } from "./mock-data";
 import { getSlot } from "./time-slots";
 
 interface MutationData {
@@ -96,16 +96,6 @@ const sortTasks = (
 // - [/] Allow the timeslots to overlap with each other
 // - [/] Implement timeslots to the algorithm
 // - [ ] Implement the buffer to the algorithm
-
-console.time("heavy-task");
-const scheduled = scheduleTasks(
-  queuedTasks.sort((a, b) => a.weight - b.weight),
-  events,
-  slots,
-);
-console.timeEnd("heavy-task");
-
-console.log(scheduled);
 
 // just plan out the data structure first
 // since the auto schedule only occurs in 1 (or 2) week

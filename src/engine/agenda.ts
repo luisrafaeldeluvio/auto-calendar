@@ -6,7 +6,7 @@ import {
 } from "date-fns/fp";
 import type { AutoTask, TimeSlot, Event } from "./types";
 import { mockEvents, slots, tasks } from "./mock-data";
-import { getTime, isThisQuarter } from "date-fns";
+import { getTime } from "date-fns";
 import { scheduleTasks } from "./auto-schedule";
 
 interface DateInterval {
@@ -145,3 +145,8 @@ export const scheduledScheduleWindow = sortScheduleWindow(
   mockEvents,
   slots,
 );
+
+// TODO
+// - [] Move to using indexeddb
+// - [] Create buttons/forms for creating tasks
+// - [] Add a can be started on variable on auto tasks

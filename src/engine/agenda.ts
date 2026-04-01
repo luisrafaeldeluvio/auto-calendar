@@ -28,11 +28,67 @@ interface ScheduleWindow {
   autoTaskMap: AutoTaskMap;
 }
 
+const getTasksInInterval = (
+  tasks: readonly AutoTask[],
+  dateInterval: Readonly<DateInterval>,
+) =>
+  tasks.filter((t) =>
+    areIntervalsOverlapping(dateInterval)({
+      start: t.startDate,
+      end: t.dueDate,
+    }),
+  );
+
 const createDateInterval = (currentDate: number) => {
   const DATE_INTERVAL_MAX = 518400000 as const; // 6 days in ms.
   const weekStart = getTime(startOfWeek(currentDate));
 
   return { start: weekStart, end: weekStart + DATE_INTERVAL_MAX };
+};
+
+const createScheduleWindow = (
+  tasksInInterval: readonly AutoTask[],
+  currentDate: number,
+) => {
+  const dateInterval = createDateInterval(currentDate);
+
+  return {
+    id: crypto.randomUUID(),
+    dateInterval: dateInterval,
+    autoTaskMap: createAutoTaskMap(tasksInInterval, dateInterval),
+  } as ScheduleWindow;
+};
+
+const sortScheduleWindow = (
+  scheduleWindow: Readonly<ScheduleWindow>,
+  events: readonly Event[],
+  slots: readonly TimeSlot[],
+) => {
+  const newAutoTaskMap: AutoTaskMap = Object.entries(
+    scheduleWindow.autoTaskMap,
+  ).reduce((acc, [day, { tasks, queue }]) => {
+    const scheduled = scheduleTasks(queue, events, slots);
+
+    if (scheduled.ok) {
+      return {
+        ...acc,
+        [day]: {
+          tasks: scheduled.data.tasks,
+          queue: scheduled.data.queue,
+        },
+      };
+    } else {
+      return {
+        ...acc,
+        [day]: {
+          tasks: tasks,
+          queue: queue,
+        },
+      };
+    }
+  }, {} as AutoTaskMap);
+
+  return { ...scheduleWindow, autoTaskMap: newAutoTaskMap } as ScheduleWindow;
 };
 
 const createAutoTaskMap = (
@@ -75,62 +131,6 @@ const createAutoTaskMap = (
   return x.result;
 };
 
-const createScheduleWindow = (
-  tasksInInterval: readonly AutoTask[],
-  currentDate: number,
-) => {
-  const dateInterval = createDateInterval(currentDate);
-
-  return {
-    id: crypto.randomUUID(),
-    dateInterval: dateInterval,
-    autoTaskMap: createAutoTaskMap(tasksInInterval, dateInterval),
-  } as ScheduleWindow;
-};
-
-const getTasksInInterval = (
-  tasks: readonly AutoTask[],
-  dateInterval: Readonly<DateInterval>,
-) =>
-  tasks.filter((t) =>
-    areIntervalsOverlapping(dateInterval)({
-      start: t.startDate,
-      end: t.dueDate,
-    }),
-  );
-
-const sortScheduleWindow = (
-  scheduleWindow: Readonly<ScheduleWindow>,
-  events: readonly Event[],
-  slots: readonly TimeSlot[],
-) => {
-  const newAutoTaskMap: AutoTaskMap = Object.entries(
-    scheduleWindow.autoTaskMap,
-  ).reduce((acc, [day, { tasks, queue }]) => {
-    const scheduled = scheduleTasks(queue, events, slots);
-
-    if (scheduled.ok) {
-      return {
-        ...acc,
-        [day]: {
-          tasks: scheduled.data.tasks,
-          queue: scheduled.data.queue,
-        },
-      };
-    } else {
-      return {
-        ...acc,
-        [day]: {
-          tasks: tasks,
-          queue: queue,
-        },
-      };
-    }
-  }, {} as AutoTaskMap);
-
-  return { ...scheduleWindow, autoTaskMap: newAutoTaskMap } as ScheduleWindow;
-};
-
 // ----------------------------
 
 const activeTasks = getTasksInInterval(
@@ -147,6 +147,9 @@ export const scheduledScheduleWindow = sortScheduleWindow(
 );
 
 // TODO
-// - [] Move to using indexeddb
-// - [] Create buttons/forms for creating tasks
+// - [/] Move to using indexeddb
+// - [/] Create buttons/forms for creating tasks
 // - [] Add a can be started on variable on auto tasks
+//    - wait did we ever use startDate on the algorithm?
+//       because if not, then thats already the can be started on.
+// dito sa algorithm (i think sortScheduleWindow ilalagay and start date)

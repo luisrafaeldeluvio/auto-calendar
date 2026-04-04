@@ -3,12 +3,14 @@ import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 const locales = { "en-US": enUS };
 
-import "./engine/agenda";
-
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import type { AutoTask } from "./engine/types";
-import { scheduledScheduleWindow } from "./engine/agenda";
 import { addMinutes } from "date-fns/fp";
+import { CreateTaskButton } from "./components/createTask";
+import { CreateTimeslotButton } from "./components/CreateTimeslots";
+import { useLiveScheduleWindow } from "./hooks/useLiveScheduleWindow";
+import { useEffect, useMemo, useState } from "react";
+import { getAllTimeSlot } from "./db/helpers";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -20,53 +22,55 @@ const localizer = dateFnsLocalizer({
 
 const formatTasks = (
   agenda: Record<
-    number,
+    string,
     {
       tasks: AutoTask[];
       queue: AutoTask[];
     }
   >,
 ) => {
-  const formattedTask = Object.entries(agenda).flatMap(([day, { tasks }]) => {
-    const x = tasks.map((t) => {
-      return {
-        ...t,
-        start: addMinutes(t.start!, new Date(Number(day))),
-        end: addMinutes(t.end!, new Date(Number(day))),
-        title: t.name,
-      };
-    });
+  const formattedTask = Object.entries(agenda).flatMap(
+    ([day, { tasks, queue }]) => {
+      const x = tasks.map((t) => {
+        return {
+          ...t,
+          start: addMinutes(t.start!, new Date(Number(day))),
+          end: addMinutes(t.end!, new Date(Number(day))),
+          title: t.name,
+        };
+      });
 
-    return x;
-  });
+      return x;
+    },
+  );
 
   return formattedTask;
 };
 
-const x = formatTasks(scheduledScheduleWindow.autoTaskMap).map((t) => {
-  return {
-    title: t.name,
-    start: t.start,
-    end: t.end,
-    type: "task",
-  };
-});
-
-const final = [
-  ...mockEvents.map((e) => {
-    return {
-      title: e.name,
-      start: new Date(e.start!),
-      end: new Date(e.end!),
-      type: "event",
-    };
-  }),
-  ...x,
-];
-
 function App() {
+  const scheduleWindow = useLiveScheduleWindow(); // here too
+  // okay so it appears to be working, but thet tasks are showing up 1 day in advance,
+  // the problem is either in the rendering or in the data.
+  const final = useMemo(() => {
+    if (!scheduleWindow) return null;
+    const x = formatTasks(scheduleWindow.autoTaskMap).map((t) => {
+      // console.log(t.name, t.start);
+      return {
+        title: t.name,
+        start: t.start,
+        end: t.end, // advance is already showing up here.
+        type: "task",
+      };
+    });
+    return [...x];
+  }, [scheduleWindow]);
+
+  if (!final) return null;
+
   return (
     <>
+      <CreateTaskButton></CreateTaskButton>
+      <CreateTimeslotButton></CreateTimeslotButton>
       <div>
         <div>
           <h1>calendar1</h1>
@@ -76,7 +80,7 @@ function App() {
             timeslots={8}
             step={5}
             localizer={localizer}
-            defaultDate={new Date(2026, 2, 18)}
+            defaultDate={new Date(2026, 3, 3)}
             style={{ height: 700 }}
             eventPropGetter={(event, start, end, isSelected) => {
               let newStyle = {

@@ -3,6 +3,7 @@ import {
   eachDayOfInterval,
   getDay,
   startOfWeek,
+  subDays,
 } from "date-fns/fp";
 import type { AutoTask, TimeSlot, Event } from "./types";
 import { getTime } from "date-fns";
@@ -100,6 +101,7 @@ const createAutoTaskMap = (
     (acc, r) => {
       const ranked = tasks.filter((t, index) => {
         if (acc.rankedTaskPool.includes(t)) return false;
+        if (getTime(r) <= t.startDate) return false;
 
         const rank = t.weight - getDay(t.dueDate);
         const targetDay = Math.min(getDay(r) + index, 6);
@@ -110,7 +112,7 @@ const createAutoTaskMap = (
       return {
         result: {
           ...acc.result,
-          [getTime(r)]: {
+          [getTime(subDays(1, r))]: {
             tasks: [],
             queue: ranked,
           },
@@ -137,3 +139,6 @@ const createAutoTaskMap = (
 //    - wait did we ever use startDate on the algorithm?
 //       because if not, then thats already the can be started on.
 // dito sa algorithm (i think sortScheduleWindow ilalagay and start date)
+
+// confirmed. we will use the startDate as can be started on.
+// we will do this by adding stuff on createAutoTaskMap();

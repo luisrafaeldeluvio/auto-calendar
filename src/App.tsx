@@ -1,4 +1,3 @@
-import { mockEvents, tasks } from "./engine/mock-data";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";

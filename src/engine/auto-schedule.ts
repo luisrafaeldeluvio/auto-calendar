@@ -1,5 +1,4 @@
 import type { AutoTask, Result, Event, TimeSlot } from "./types";
-import { queuedTasks, slots } from "./mock-data";
 import { getSlot } from "./time-slots";
 
 interface MutationData {

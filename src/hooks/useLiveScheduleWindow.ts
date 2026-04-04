@@ -6,13 +6,15 @@ import {
   createDateInterval,
   createScheduleWindow,
   sortScheduleWindow,
+  type ScheduleWindow,
 } from "../engine/agenda";
-import type { TimeSlot } from "../engine/types";
+import type { AutoTask, TimeSlot } from "../engine/types";
+import { getAllTimeSlot } from "../db/helpers";
 
-export const useLiveScheduleWindow = (slots: TimeSlot[]) => {
+export const useLiveScheduleWindow = () => {
   const [dateInterval] = useState(createDateInterval(getTime(new Date())));
-
-  const activeAutoTasks = useLiveQuery(
+  const slots: TimeSlot[] | undefined = useLiveQuery(() => getAllTimeSlot());
+  const activeAutoTasks: AutoTask[] | undefined = useLiveQuery(
     () =>
       db.autoTasks
         .filter((t) =>
@@ -25,8 +27,8 @@ export const useLiveScheduleWindow = (slots: TimeSlot[]) => {
     [dateInterval],
   );
 
-  const scheduledWindow = useMemo(() => {
-    if (!activeAutoTasks) return null;
+  const scheduledWindow: ScheduleWindow | null = useMemo(() => {
+    if (!activeAutoTasks || !slots) return null;
 
     // eslint-disable-next-line react-hooks/purity
     const timespan = createScheduleWindow(activeAutoTasks, Date.now());

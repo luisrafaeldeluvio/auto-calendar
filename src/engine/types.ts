@@ -11,7 +11,7 @@ export interface TimeSlot {
 
 export type SlotError = "INVALID_RANGE" | "TIME_EXCEEDED";
 
-type Weight = 1 | 2 | 3 | 4;
+export type Weight = 1 | 2 | 3 | 4;
 
 export interface Event {
   id: string;

@@ -5,7 +5,6 @@ import {
   startOfWeek,
 } from "date-fns/fp";
 import type { AutoTask, TimeSlot, Event } from "./types";
-import { mockEvents, slots, tasks } from "./mock-data";
 import { getTime } from "date-fns";
 import { scheduleTasks } from "./auto-schedule";
 
@@ -22,13 +21,13 @@ type AutoTaskMap = Record<
   }
 >;
 
-interface ScheduleWindow {
+export interface ScheduleWindow {
   id: string;
   dateInterval: DateInterval;
   autoTaskMap: AutoTaskMap;
 }
 
-const getTasksInInterval = (
+export const getTasksInInterval = (
   tasks: readonly AutoTask[],
   dateInterval: Readonly<DateInterval>,
 ) =>
@@ -39,14 +38,14 @@ const getTasksInInterval = (
     }),
   );
 
-const createDateInterval = (currentDate: number) => {
+export const createDateInterval = (currentDate: number) => {
   const DATE_INTERVAL_MAX = 518400000 as const; // 6 days in ms.
   const weekStart = getTime(startOfWeek(currentDate));
 
   return { start: weekStart, end: weekStart + DATE_INTERVAL_MAX };
 };
 
-const createScheduleWindow = (
+export const createScheduleWindow = (
   tasksInInterval: readonly AutoTask[],
   currentDate: number,
 ) => {
@@ -59,7 +58,7 @@ const createScheduleWindow = (
   } as ScheduleWindow;
 };
 
-const sortScheduleWindow = (
+export const sortScheduleWindow = (
   scheduleWindow: Readonly<ScheduleWindow>,
   events: readonly Event[],
   slots: readonly TimeSlot[],
@@ -130,21 +129,6 @@ const createAutoTaskMap = (
 
   return x.result;
 };
-
-// ----------------------------
-
-const activeTasks = getTasksInInterval(
-  tasks,
-  createDateInterval(getTime(new Date())),
-);
-
-export const timespan = createScheduleWindow(activeTasks, Date.now());
-
-export const scheduledScheduleWindow = sortScheduleWindow(
-  timespan,
-  mockEvents,
-  slots,
-);
 
 // TODO
 // - [/] Move to using indexeddb

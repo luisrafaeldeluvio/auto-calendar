@@ -117,10 +117,18 @@ export const CreateTaskButton = () => {
     <>
       <dialog ref={dialogRef} popover="manual">
         <p>this popped?</p>
-        <form action={createTaskFromForm}>
-          <input type="text" name="name" required />
+        <form
+          action={createTaskFromForm}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <label htmlFor="name">name</label>
+          <input type="text" name="name" id="name" required />
 
-          <select name="durations" required>
+          <label htmlFor="durations">duration</label>
+          <select name="durations" id="durations" required>
             {durationOptions.map((e) => {
               return (
                 <option value={e.duration} key={e.duration}>
@@ -130,24 +138,32 @@ export const CreateTaskButton = () => {
             })}
           </select>
 
-          {weightOptions.map((e) => {
-            return (
-              <>
-                <input
-                  type="radio"
-                  name="weight"
-                  id={e.text}
-                  value={e.weight}
-                  key={e.weight}
-                  defaultChecked={e.text === "Normal" ? true : false}
-                  required
-                />
-                <label htmlFor={e.text}>{e.text}</label>
-              </>
-            );
-          })}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            {weightOptions.map((e) => {
+              return (
+                <>
+                  <input
+                    type="radio"
+                    name="weight"
+                    id={e.text}
+                    value={e.weight}
+                    key={e.weight}
+                    defaultChecked={e.text === "Normal" ? true : false}
+                    required
+                  />
+                  <label htmlFor={e.text}>{e.text}</label>
+                </>
+              );
+            })}
+          </div>
 
-          <select name="timeslots" required>
+          <label htmlFor="timeslots">timeslot</label>
+          <select name="timeslots" id="timeslots" required>
             {slots?.map((s) => {
               return (
                 <option value={s.id} key={s.id}>
@@ -157,8 +173,10 @@ export const CreateTaskButton = () => {
             })}
           </select>
 
-          <input type="date" name="startDate" required />
-          <input type="date" name="dueDate" required />
+          <label htmlFor="startDate">Can be started on</label>
+          <input type="date" name="startDate" id="startDate" required />
+          <label htmlFor="dueDate">Due by</label>
+          <input type="date" name="dueDate" id="dueDate" required />
 
           <button type="submit">Create</button>
         </form>

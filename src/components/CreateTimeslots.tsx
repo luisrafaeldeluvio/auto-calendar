@@ -9,8 +9,6 @@ const createTimeslotFromForm = (data: FormData) => {
     end: Number(data.get("end")),
   });
 
-  console.log(slot);
-
   if (slot.ok) {
     addTimeSlot(slot.data.slot);
     console.log("success creating timeslot: ", slot.data.slot);
@@ -33,10 +31,13 @@ export const CreateTimeslotButton = () => {
       <dialog ref={dialogRef} popover="manual">
         <p>this popped?</p>
         <form action={createTimeslotFromForm}>
-          <input type="text" name="name" />
+          <label htmlFor="name">Name</label>
+          <input type="text" name="name" id="name" />
 
-          <input type="number" name="start" min="0" max="1440" />
-          <input type="number" name="end" min="0" max="1440" />
+          <label htmlFor="start">start</label>
+          <input type="number" name="start" id="start" min="0" max="1440" />
+          <label htmlFor="end">end</label>
+          <input type="number" name="end" id="end" min="0" max="1440" />
           <button type="submit">Create</button>
         </form>
         <button onClick={toggleDialog}>Close</button>

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { addAutoTask, getAllTimeSlot } from "../db/helpers";
 import { type TimeSlot, type Weight } from "../engine/types";
 import { createAutoTask } from "../engine/tasks";
 import { getTime } from "date-fns";
+import { useLiveQuery } from "dexie-react-hooks";
 
 const durationOptions = [
   {
@@ -104,28 +105,13 @@ const createTaskFromForm = (data: FormData) => {
 
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [slots, setSlots] = useState<TimeSlot[]>();
+  const slots: TimeSlot[] | undefined = useLiveQuery(() => getAllTimeSlot());
 
   const toggleDialog = () => {
     if (dialogRef.current) {
       dialogRef.current.togglePopover();
     }
   };
-
-  useEffect(() => {
-    let ignore = false;
-
-    const getslots = async () => {
-      console.log(getTime("null"));
-      return await getAllTimeSlot();
-    };
-
-    getslots().then((s) => setSlots(s));
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
 
   return (
     <>

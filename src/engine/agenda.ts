@@ -101,12 +101,12 @@ const createAutoTaskMap = (
     (acc, r) => {
       const ranked = tasks.filter((t, index) => {
         if (acc.rankedTaskPool.includes(t)) return false;
-        if (getTime(r) <= t.startDate) return false;
+        if (t.startDate >= getTime(r)) return false;
 
-        const rank = t.weight - getDay(t.dueDate);
         const targetDay = Math.min(getDay(r) + index, 6);
+        const rank = t.weight - getDay(t.dueDate);
 
-        if (rank > 0 || rank < -2 + targetDay) return true;
+        if (rank > 0 || rank <= -1 + targetDay) return true;
       });
 
       return {

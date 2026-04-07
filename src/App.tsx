@@ -1,15 +1,15 @@
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
-import { parse, format, startOfWeek, getDay } from "date-fns";
+import { parse, format, startOfWeek, getDay, formatDate } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 const locales = { "en-US": enUS };
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import type { AutoTask } from "./engine/types";
-import { addMinutes } from "date-fns/fp";
+import { addDays, addMinutes } from "date-fns/fp";
 import { CreateTaskButton } from "./components/createTask";
 import { CreateTimeslotButton } from "./components/CreateTimeslots";
 import { useLiveScheduleWindow } from "./hooks/useLiveScheduleWindow";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAllTimeSlot } from "./db/helpers";
 
 const localizer = dateFnsLocalizer({
@@ -48,22 +48,26 @@ const formatTasks = (
 };
 
 function App() {
-  const scheduleWindow = useLiveScheduleWindow(); // here too
-  // okay so it appears to be working, but thet tasks are showing up 1 day in advance,
-  // the problem is either in the rendering or in the data.
+  const [date, setDate] = useState<Date>(new Date());
+  const scheduleWindow = useLiveScheduleWindow();
+
+  console.log(scheduleWindow);
   const final = useMemo(() => {
     if (!scheduleWindow) return null;
     const x = formatTasks(scheduleWindow.autoTaskMap).map((t) => {
-      // console.log(t.name, t.start);
       return {
-        title: t.name,
+        title: `${t.name} - s: ${formatDate(new Date(t.startDate), "MM-dd ")} - d: ${formatDate(new Date(t.dueDate), "MM-dd ")}`,
         start: t.start,
-        end: t.end, // advance is already showing up here.
+        end: t.end,
         type: "task",
       };
     });
     return [...x];
   }, [scheduleWindow]);
+
+  const handleNavigate = useCallback((newDate: Date) => {
+    setDate(newDate);
+  }, []);
 
   if (!final) return null;
 
@@ -71,28 +75,27 @@ function App() {
     <>
       <CreateTaskButton></CreateTaskButton>
       <CreateTimeslotButton></CreateTimeslotButton>
+
       <div>
         <div>
           <h1>calendar1</h1>
           <Calendar
             events={final}
             defaultView={Views.WEEK}
-            timeslots={8}
+            timeslots={3}
             step={5}
             localizer={localizer}
-            defaultDate={new Date(2026, 3, 3)}
+            date={date}
+            onNavigate={handleNavigate}
             style={{ height: 700 }}
             eventPropGetter={(event, start, end, isSelected) => {
               let newStyle = {
-                backgroundColor: "lightgrey",
                 color: "black",
                 borderRadius: "20px",
                 border: "none",
+                height: "100px",
+                backgroundColor: "green",
               };
-
-              if (event.type === "task") {
-                newStyle.backgroundColor = "green";
-              }
 
               return {
                 className: "",

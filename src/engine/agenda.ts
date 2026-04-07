@@ -131,14 +131,3 @@ const createAutoTaskMap = (
 
   return x.result;
 };
-
-// TODO
-// - [/] Move to using indexeddb
-// - [/] Create buttons/forms for creating tasks
-// - [] Add a can be started on variable on auto tasks
-//    - wait did we ever use startDate on the algorithm?
-//       because if not, then thats already the can be started on.
-// dito sa algorithm (i think sortScheduleWindow ilalagay and start date)
-
-// confirmed. we will use the startDate as can be started on.
-// we will do this by adding stuff on createAutoTaskMap();

@@ -24,5 +24,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "client/src",
+    "server/src/engine",
+    "server/src/services/events.ts",
+    "server/src/types.ts",
+    "server/src/constants.ts"
+  ]
 }

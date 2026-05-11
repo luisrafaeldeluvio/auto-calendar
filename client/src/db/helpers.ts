@@ -1,4 +1,9 @@
-import type { TimeSlot, Event, Task, AutoTask } from "../engine/types";
+import type {
+  TimeSlot,
+  Event,
+  Task,
+  AutoTask,
+} from "../../../server/src/types";
 import { db } from "./db";
 
 // Timeslots

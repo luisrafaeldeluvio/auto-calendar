@@ -7,8 +7,8 @@ import {
   createScheduleWindow,
   sortScheduleWindow,
   type ScheduleWindow,
-} from "../engine/agenda";
-import type { AutoTask, TimeSlot } from "../engine/types";
+} from "../../server/src/engine/agenda";
+import type { AutoTask, TimeSlot } from "../../../server/src/types";
 import { getAllTimeSlot } from "../db/helpers";
 
 export const useLiveScheduleWindow = () => {

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { addSlot } from "../engine/time-slots";
+import { addSlot } from "../../server/src/engine/time-slots";
 import { addTimeSlot } from "../db/helpers";
 
 const createTimeslotFromForm = (data: FormData) => {

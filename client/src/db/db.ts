@@ -1,5 +1,10 @@
 import { Dexie, type EntityTable } from "dexie";
-import type { TimeSlot, Event, Task, AutoTask } from "../engine/types";
+import type {
+  TimeSlot,
+  Event,
+  Task,
+  AutoTask,
+} from "../../../server/src/types";
 
 export const db = new Dexie("AutoCalendarDB") as Dexie & {
   timeslots: EntityTable<TimeSlot, "id">;

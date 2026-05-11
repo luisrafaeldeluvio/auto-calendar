@@ -4,7 +4,7 @@ import { enUS } from "date-fns/locale/en-US";
 const locales = { "en-US": enUS };
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import type { AutoTask } from "./engine/types";
+import type { AutoTask } from "../../server/src/types";
 import { addDays, addMinutes } from "date-fns/fp";
 import { CreateTaskButton } from "./components/createTask";
 import { CreateTimeslotButton } from "./components/CreateTimeslots";

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { addAutoTask, getAllTimeSlot } from "../db/helpers";
-import { type TimeSlot, type Weight } from "../engine/types";
-import { createAutoTask } from "../engine/tasks";
+import { type TimeSlot, type Weight } from "../../../server/src/types";
+import { createAutoTask } from "../../server/src/engine/tasks";
 import { getTime } from "date-fns";
 import { useLiveQuery } from "dexie-react-hooks";
 

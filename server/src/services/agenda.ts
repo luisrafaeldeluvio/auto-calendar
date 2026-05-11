@@ -70,6 +70,7 @@ export const sortScheduleWindow = (
     const scheduled = scheduleTasks(queue, events, slots);
 
     if (scheduled.ok) {
+      console.log(scheduled.data.queue);
       return {
         ...acc,
         [day]: {
@@ -131,3 +132,18 @@ const createAutoTaskMap = (
 
   return x.result;
 };
+
+// okay so the new problem is, say the start day is 2 and due date is 3
+// when the slot is full, instead of moving the task on 3 it will just be moved to the queue
+
+// Now i have this side effect where the tasks are only being scheduled on the start date when
+// the timeslots are full instead of moving the task on other availabled days based on their due date.
+
+// I was thinking of maybe getting all the leftover queue tasks, filtering those who still has
+// a due date, and try assigning them to those days and ranking and sorting them again using bubble sort.
+// This also means that for every iteration of the days, i take its leftover queue and move them to the
+// queue of the next day and so on. IF it was not able to find on any of the days,
+// the task will be put back on its original queue.
+
+// okay so i dont need to rank and sort them again, i simply must just put them on the queue of the next
+// day on sortScheduleWindow()

@@ -30,7 +30,7 @@ export const scheduleTasks = (
       if (!slot) {
         return "SLOT_NOT_FOUND";
       } else {
-        const sortedTask = sortTasks(
+        const sortedTask = sortTasksBySlot(
           taskList,
           activeEvents,
           slot.start,
@@ -50,45 +50,56 @@ export const scheduleTasks = (
   return { ok: true, data: tasks };
 };
 
-const sortTasks = (
+const sortTasksBySlot = (
   queuedTasks: readonly AutoTask[],
   activeEvents: readonly Event[],
-  startTime: number,
-  maxTime: number,
-  toSchedule: AutoTask[] = [],
-) => {
-  const [task, ...tasks] = queuedTasks;
+  slotStartTime: number,
+  slotEndTime: number,
+  sortedTasks: AutoTask[] = [],
+): { sortedTasks: AutoTask[]; queue: AutoTask[] } => {
+  const [currentTask, ...remainingTasks] = queuedTasks;
+  if (!currentTask) return { sortedTasks: sortedTasks, queue: [] };
 
-  if (!task) return { tasks: toSchedule, queue: [] };
-
-  const busyEvents = !toSchedule.length
+  const currentTaskStartTime: number = slotStartTime;
+  const currentTaskEndTime: number =
+    currentTaskStartTime + currentTask.duration;
+  const busyEvents: readonly Event[] = !sortedTasks.length
     ? activeEvents.filter((e) => e.isBusy)
     : activeEvents;
-  const currenTotalTime = startTime + task.duration;
-  const isOverlap = busyEvents.find(
-    (e) => e.end > startTime && currenTotalTime > e.start,
+  const overlappingEvent: Event = busyEvents.find(
+    (e) => e.end > currentTaskStartTime && currentTaskEndTime > e.start,
   );
 
-  if (isOverlap)
-    return sortTasks(tasks, busyEvents, isOverlap.end, maxTime, [
-      ...toSchedule,
-    ]);
+  if (overlappingEvent)
+    return sortTasksBySlot(
+      remainingTasks,
+      busyEvents,
+      overlappingEvent.end,
+      slotEndTime,
+      [...sortedTasks],
+    );
 
-  const isScheduleFull = currenTotalTime > maxTime;
-  if (isScheduleFull) {
-    return { tasks: toSchedule, queue: [...tasks, task] };
+  const isSlotFull = currentTaskEndTime > slotEndTime;
+  if (isSlotFull) {
+    return {
+      sortedTasks: sortedTasks,
+      queue: [...remainingTasks, currentTask],
+    };
   }
 
   const newTask: AutoTask = {
-    ...task,
-    start: startTime,
-    end: currenTotalTime,
+    ...currentTask,
+    start: currentTaskStartTime,
+    end: currentTaskEndTime,
   };
 
-  return sortTasks(tasks, busyEvents, currenTotalTime, maxTime, [
-    ...toSchedule,
-    newTask,
-  ]);
+  return sortTasksBySlot(
+    remainingTasks,
+    busyEvents,
+    currentTaskEndTime,
+    slotEndTime,
+    [...sortedTasks, newTask],
+  );
 };
 
 // TODO:

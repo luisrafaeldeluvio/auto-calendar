@@ -50,13 +50,13 @@ export const scheduleTasks = (
   return { ok: true, data: tasks };
 };
 
-const sortTasksBySlot = (
-  queuedTasks: readonly AutoTask[],
+const assignTaskTimesBySlot = (
+  queuedTasks: readonly Task[],
   activeEvents: readonly Event[],
   slotStartTime: number,
   slotEndTime: number,
-  sortedTasks: AutoTask[] = [],
-): { sortedTasks: AutoTask[]; queue: AutoTask[] } => {
+  sortedTasks: Task[] = [],
+): { sortedTasks: Task[]; queue: Task[] } => {
   const [currentTask, ...remainingTasks] = queuedTasks;
   if (!currentTask) return { sortedTasks: sortedTasks, queue: [] };
 
@@ -66,12 +66,12 @@ const sortTasksBySlot = (
   const busyEvents: readonly Event[] = !sortedTasks.length
     ? activeEvents.filter((e) => e.isBusy)
     : activeEvents;
-  const overlappingEvent: Event = busyEvents.find(
+  const overlappingEvent: Event | undefined = busyEvents.find(
     (e) => e.end > currentTaskStartTime && currentTaskEndTime > e.start,
   );
 
   if (overlappingEvent)
-    return sortTasksBySlot(
+    return assignTaskTimesBySlot(
       remainingTasks,
       busyEvents,
       overlappingEvent.end,
@@ -87,13 +87,13 @@ const sortTasksBySlot = (
     };
   }
 
-  const newTask: AutoTask = {
+  const newTask: Task = {
     ...currentTask,
     start: currentTaskStartTime,
     end: currentTaskEndTime,
   };
 
-  return sortTasksBySlot(
+  return assignTaskTimesBySlot(
     remainingTasks,
     busyEvents,
     currentTaskEndTime,

@@ -52,7 +52,7 @@ export const scheduleTasks = (
 
 const assignTaskTimesBySlot = (
   queuedTasks: readonly Task[],
-  activeEvents: readonly Event[],
+  activeEvents: readonly (Event | Task)[],
   slotStartTime: number,
   slotEndTime: number,
   sortedTasks: Task[] = [],
@@ -63,10 +63,10 @@ const assignTaskTimesBySlot = (
   const currentTaskStartTime: number = slotStartTime;
   const currentTaskEndTime: number =
     currentTaskStartTime + currentTask.duration;
-  const busyEvents: readonly Event[] = !sortedTasks.length
+  const busyEvents: readonly (Event | Task)[] = !sortedTasks.length
     ? activeEvents.filter((e) => e.isBusy)
     : activeEvents;
-  const overlappingEvent: Event | undefined = busyEvents.find(
+  const overlappingEvent: Event | Task | undefined = busyEvents.find(
     (e) => e.end > currentTaskStartTime && currentTaskEndTime > e.start,
   );
 

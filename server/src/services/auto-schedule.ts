@@ -72,7 +72,7 @@ const assignTaskTimesBySlot = (
 
   if (overlappingEvent)
     return assignTaskTimesBySlot(
-      remainingTasks,
+      queuedTasks,
       busyEvents,
       overlappingEvent.end,
       slotEndTime,

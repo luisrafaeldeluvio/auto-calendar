@@ -15,6 +15,12 @@ const all_slot = [
     start: 180,
     end: 360,
   },
+  {
+    id: "4",
+    name: "slot4",
+    start: 400,
+    end: 460,
+  },
 ];
 
 // we need to get all the overlapping time slots and turn them into their own time slot,
@@ -42,9 +48,9 @@ const splitTimeSlotsOverlap = (slot1: TimeSlot, slot2: TimeSlot) => {
           start: slot1.end,
         },
       ] as TimeSlot[],
-    };
+    } as const;
   } else {
-    return { overlap: null, remainder: [slot1, slot2] };
+    return { overlap: null, remainder: [slot1, slot2] } as const;
   }
 };
 
@@ -62,13 +68,17 @@ const sliceOverlappingTimeSlots = (
 
   const [slot1, slot2] = joinedTimeSlots.remainder;
   const overlapslot = joinedTimeSlots.overlap;
-  if (!slot1 || !slot2 || !overlapslot) return [];
 
   const remainingSlots = slicedTimeSlots.toSpliced(-1, 1);
 
   return sliceOverlappingTimeSlots(
     [next, ...rest],
-    [...remainingSlots, slot1, overlapslot, slot2],
+    [
+      ...remainingSlots,
+      slot1,
+      ...(overlapslot !== null ? [overlapslot] : []),
+      slot2,
+    ],
   );
 };
 

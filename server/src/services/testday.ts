@@ -23,95 +23,6 @@ const all_slot = [
   },
 ];
 
-// we need to get all the overlapping time slots and turn them into their own time slot,
-// so that means that the og timeslot's that are overlapping will be temporarily reduced
-// call a function for that.
-
-const splitTimeSlotsOverlap = (slot1: TimeSlot, slot2: TimeSlot) => {
-  if (slot2.start < slot1.end) {
-    const overlap: TimeSlot = {
-      id: crypto.randomUUID(),
-      name: `Overlap of ${slot1.id} and ${slot2.id}`,
-      start: slot2.start,
-      end: slot1.end,
-    };
-
-    return {
-      overlap: overlap,
-      remainder: [
-        {
-          ...slot1,
-          end: slot2.start,
-        },
-        {
-          ...slot2,
-          start: slot1.end,
-        },
-      ] as TimeSlot[],
-    } as const;
-  } else {
-    return { overlap: null, remainder: [slot1, slot2] } as const;
-  }
-};
-
-const sliceOverlappingTimeSlots = (
-  timeslots: TimeSlot[],
-  slicedTimeSlots: TimeSlot[] = [],
-) => {
-  const [current, next, ...rest] = timeslots;
-  if (!current || !next) return slicedTimeSlots;
-
-  const joinedTimeSlots = splitTimeSlotsOverlap(
-    slicedTimeSlots[slicedTimeSlots.length - 1] ?? current,
-    next,
-  );
-
-  const [slot1, slot2] = joinedTimeSlots.remainder;
-  const overlapslot = joinedTimeSlots.overlap;
-
-  const remainingSlots = slicedTimeSlots.toSpliced(-1, 1);
-
-  return sliceOverlappingTimeSlots(
-    [next, ...rest],
-    [
-      ...remainingSlots,
-      slot1,
-      ...(overlapslot !== null ? [overlapslot] : []),
-      slot2,
-    ],
-  );
-};
-
-console.time();
-const x = sliceOverlappingTimeSlots(all_slot);
-console.timeEnd();
-
-console.log(x);
-// working na!
-// console.log(x);
-// after getting the overlapping timeslots, we will use the remainder timeslots
-// for the initial sorting of slo1 and 2, and then the queue from those will be
-// used for the joined time slot
-// say we are now in slot3, we can just use the queue in slot 2 for the joined time slot.
-
-// slot1: 1-4
-// slot2: 2-7
-// slot3: 6-9
-
-// we extract the overlaps
-// slot1: 1-2
-// overlapslot1-2: 2-4
-// slot2: 4-7
-// overlapslot2-3: 6-7
-// slot3: 8-9
-
-// we sort items in slot1, we will get a sorted and queue object from that1, for overlapslot1-2,
-// we will use the queue from slot1 and the items on slot2 as the item here.
-// and then we will be using the queue from overlapslot1-2 as the items for slo2,etc.
-
-// so the tasks will be prevSortedTasks.queue then
-// so the overlapslots task will be prevSortedTasks.queue + nextTasks
-
 //per day palang ito
 const scheduleTasks = (
   timeSlots: TimeSlot[],
@@ -133,7 +44,31 @@ const scheduleTasks = (
     slot.end,
   );
 
-  // console.log(prevTask);
+  // wait this don't make sense. is the overlaps being their own timeslots even actually a good idea?
+  // here's an example:
+  // say the slots are from 1-4 and 3-6
+  // after the overlap calcuations the new slots will be 1-2 3-4 and 5-6
+  // now, say we have a task from the initial 1-4 slot that is 2 hours long,
+  // it would not fit in 1-2 and 3-4. yeah this was an oversight.
+
+  // ------------------------------------
+  // wait maybe what if we assign time to both overlapping slots at the same time.
+  // we then compare the tasks from slotA and tasks from slotB that overlaps or within
+  // the overlapping part. Here's an example:
+
+  // SlotA: 1-5 SlotB: 3-7
+  // | SlotA Task         | SlotB Task      |
+  // | ------------------ | --------------- |
+  // | 1: 1 hours; normal | 2 hours; normal |
+  // | 2: 3 hours; normal | 2 hours; high   |
+
+  // We sort them at the same time
+  // | 1-2: SlotA-1 | 3-5: SlotB-2 |
+  // | 2-5: SlotA-2 | 5-7: SlotB-1 |
+
+  // SlotA-2 and SlotB-2 overlaps with the overlapping part
+  // Since SlotB-2 has higher getPriority, we assign time again
+  // to SlotA but 3-5 is now blocked.
 
   return scheduleTasks(
     slots,
@@ -142,6 +77,8 @@ const scheduleTasks = (
     [...sortedTasks, { ...sorted }],
   );
 };
+
+// ----
 
 const flattenTasks = (tasks: Task[]) =>
   tasks.map((test) => ({
@@ -172,5 +109,3 @@ const flattenTasks = (tasks: Task[]) =>
 //   console.log("queue");
 //   console.table(r.queue.length > 0 ? flattenTasks(r.queue) : "");
 // });
-
-// console.log(joinOverlappingTimeSlots(slot_normal, slot_intersect_with_normal));

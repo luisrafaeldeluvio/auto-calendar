@@ -1,4 +1,4 @@
-import type { Task, TimeSlot } from "../types";
+import type { Result, Task, TimeSlot, Event } from "../types";
 import { assignTaskTimesBySlot, type TasksSchedule } from "./auto-schedule";
 import {
   slot_normal,
@@ -59,6 +59,69 @@ export const calculateTimeslotOverlap = (
     },
   };
 };
+
+const handleOverlappingSlots = (
+  timeslotA: TimeSlot,
+  timeslotB: TimeSlot,
+  tasks: Task[],
+) => {
+  const assignedTasksA = assignTaskTimesBySlot(
+    tasks.filter((t) => t.slotId === timeslotA.id),
+    [],
+    timeslotA.start,
+    timeslotA.end,
+  );
+  const assignedTasksB = assignTaskTimesBySlot(
+    tasks.filter((t) => t.slotId === timeslotB.id),
+    [],
+    timeslotB.start,
+    timeslotB.end,
+  );
+
+  const combined = [
+    ...assignedTasksA.sortedTasks,
+    ...assignedTasksB.sortedTasks,
+  ];
+
+  console.table(flattenTasks(combined));
+
+  const recursionTest = (tasks: Task[], result: Task[] = []) => {
+    const [curr, ...rest] = tasks;
+    if (!curr)
+      return {
+        result: result,
+      };
+
+    const overlappingTasks = rest.filter(
+      (t) => t.start <= curr.end && curr.start <= t.end,
+    );
+
+    const isCurrLowerWeight = overlappingTasks.some(
+      (t) => t.weight > curr.weight,
+    );
+
+    if (isCurrLowerWeight) return recursionTest(rest, result);
+
+    return recursionTest(rest, [...result, curr]);
+  };
+
+  console.table(
+    flattenTasks(
+      recursionTest(combined).result.filter((t) => t.slotId === timeslotA.id),
+    ),
+  );
+
+  // heres an idea
+  // what if we create a master time, we take the curr task in A and we take its interval and look at other
+  // tasks where their interval overlaps with the curr task in A (Like a bubble sort). If we find some, let's compare curr task from A
+  // to each of them, as soon as currTaskA < someTaskX we will move on else we place the curr task A. So here we will have a counter
+  // for the current time.
+};
+
+const x = calculateTimeslotOverlap(slot_normal, slot_intersect_with_normal);
+
+if (x.ok)
+  handleOverlappingSlots(slot_normal, slot_intersect_with_normal, all_tasks);
 
 //per day palang ito
 const scheduleTasks = (

@@ -23,6 +23,43 @@ const all_slot = [
   },
 ];
 
+export const calculateTimeslotOverlap = (
+  slotA: TimeSlot,
+  slotB: TimeSlot,
+): Result<
+  { readonly overlap: TimeSlot; readonly remainder: TimeSlot[] },
+  "SLOTS_NOT_INTERSECT"
+> => {
+  const isIntersect = slotB.start < slotA.end;
+  const isInside = slotA.end > slotB.end;
+
+  if (!isIntersect) return { ok: false, error: "SLOTS_NOT_INTERSECT" };
+
+  const overlap: TimeSlot = {
+    id: crypto.randomUUID(),
+    name: `Overlap of ${slotA.id} and ${slotB.id}`,
+    start: slotB.start,
+    end: slotA.end > slotB.end ? slotB.end : slotA.end,
+  };
+
+  return {
+    ok: true,
+    data: {
+      overlap: overlap,
+      remainder: [
+        {
+          ...slotA,
+          end: slotB.start,
+        },
+        {
+          ...slotB,
+          start: isInside ? slotB.end : slotA.end,
+        },
+      ],
+    },
+  };
+};
+
 //per day palang ito
 const scheduleTasks = (
   timeSlots: TimeSlot[],

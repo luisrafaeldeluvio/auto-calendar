@@ -64,7 +64,7 @@ const handleOverlappingSlots = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
   tasks: Task[],
-) => {
+): TasksSchedule => {
   const assignedTasksA = assignTaskTimesBySlot(
     tasks.filter((t) => t.slotId === timeslotA.id),
     [],
@@ -83,13 +83,16 @@ const handleOverlappingSlots = (
     ...assignedTasksB.sortedTasks,
   ];
 
-  console.table(flattenTasks(combined));
-
-  const recursionTest = (tasks: Task[], result: Task[] = []) => {
+  const recursionTest = (
+    tasks: Task[],
+    result: Task[] = [],
+    queue: Task[] = [],
+  ): TasksSchedule => {
     const [curr, ...rest] = tasks;
     if (!curr)
       return {
-        result: result,
+        sortedTasks: result.filter((t) => t.slotId === timeslotA.id),
+        queue: queue.filter((t) => t.slotId === timeslotA.id),
       };
 
     const overlappingTasks = rest.filter(
@@ -100,28 +103,25 @@ const handleOverlappingSlots = (
       (t) => t.weight > curr.weight,
     );
 
-    if (isCurrLowerWeight) return recursionTest(rest, result);
+    if (isCurrLowerWeight)
+      return recursionTest(rest, result, [
+        ...queue,
+        ...[curr].map((v) => {
+          return {
+            ...v,
+            start: 0,
+            end: 0,
+          };
+        }),
+      ]);
 
-    return recursionTest(rest, [...result, curr]);
+    return recursionTest(rest, [...result, curr], queue);
   };
 
-  console.table(
-    flattenTasks(
-      recursionTest(combined).result.filter((t) => t.slotId === timeslotA.id),
-    ),
-  );
-
-  // heres an idea
-  // what if we create a master time, we take the curr task in A and we take its interval and look at other
-  // tasks where their interval overlaps with the curr task in A (Like a bubble sort). If we find some, let's compare curr task from A
-  // to each of them, as soon as currTaskA < someTaskX we will move on else we place the curr task A. So here we will have a counter
-  // for the current time.
+  console.warn("THIS WAS RUNNNNNNNNNNNNNNNNN");
+  console.warn(recursionTest(combined));
+  return recursionTest(combined);
 };
-
-const x = calculateTimeslotOverlap(slot_normal, slot_intersect_with_normal);
-
-if (x.ok)
-  handleOverlappingSlots(slot_normal, slot_intersect_with_normal, all_tasks);
 
 //per day palang ito
 const scheduleTasks = (
@@ -130,48 +130,31 @@ const scheduleTasks = (
   usedSlots: TimeSlot[] = [],
   sortedTasks: TasksSchedule[] = [],
 ) => {
-  const [slot, ...slots] = timeSlots;
+  const [slot, nextSlot, ...slots] = timeSlots;
   if (!slot) return sortedTasks;
 
   const tasks = allTasks.filter((t) => t.slotId === slot.id);
   const prevTask = sortedTasks[sortedTasks.length - 1];
-  // althought we can just pass all the sorted pask here
-  // instead of just the previous task.
-  const sorted = assignTaskTimesBySlot(
-    tasks,
-    prevTask?.sortedTasks ?? [],
-    slot.start,
-    slot.end,
-  );
 
-  // wait this don't make sense. is the overlaps being their own timeslots even actually a good idea?
-  // here's an example:
-  // say the slots are from 1-4 and 3-6
-  // after the overlap calcuations the new slots will be 1-2 3-4 and 5-6
-  // now, say we have a task from the initial 1-4 slot that is 2 hours long,
-  // it would not fit in 1-2 and 3-4. yeah this was an oversight.
+  const isOverlapping = nextSlot
+    ? calculateTimeslotOverlap(slot, nextSlot).ok
+    : false;
 
-  // ------------------------------------
-  // wait maybe what if we assign time to both overlapping slots at the same time.
-  // we then compare the tasks from slotA and tasks from slotB that overlaps or within
-  // the overlapping part. Here's an example:
+  // console.warn(isOverlapping);
 
-  // SlotA: 1-5 SlotB: 3-7
-  // | SlotA Task         | SlotB Task      |
-  // | ------------------ | --------------- |
-  // | 1: 1 hours; normal | 2 hours; normal |
-  // | 2: 3 hours; normal | 2 hours; high   |
+  const sorted = isOverlapping
+    ? handleOverlappingSlots(slot, nextSlot!, allTasks)
+    : assignTaskTimesBySlot(
+        tasks,
+        prevTask?.sortedTasks ?? [],
+        slot.start,
+        slot.end,
+      );
 
-  // We sort them at the same time
-  // | 1-2: SlotA-1 | 3-5: SlotB-2 |
-  // | 2-5: SlotA-2 | 5-7: SlotB-1 |
-
-  // SlotA-2 and SlotB-2 overlaps with the overlapping part
-  // Since SlotB-2 has higher getPriority, we assign time again
-  // to SlotA but 3-5 is now blocked.
+  // console.warn(sorted);
 
   return scheduleTasks(
-    slots,
+    [...(nextSlot ? [nextSlot] : []), ...slots],
     allTasks,
     [{ ...slot }, ...usedSlots],
     [...sortedTasks, { ...sorted }],
@@ -180,32 +163,21 @@ const scheduleTasks = (
 
 // ----
 
-const flattenTasks = (tasks: Task[]) =>
-  tasks.map((test) => ({
-    //  id: test.id,
+function flattenTasks(tasks: Task[]) {
+  return tasks.map((test) => ({
     name: test.name,
-    // notes: test.notes,
-
     start: test.start,
     end: test.end,
-
-    // isBusy: test.isBusy,
-    // isDone: test.isDone,
-    // isSortable: test.isSortable,
     duration: test.duration,
     weight: test.weight,
-    // slotId: test.slotId,
-    // bufferBefore: test.buffer.before,
-    // bufferAfter: test.buffer.after,
-    // startDate: test.startDate,
-    // dueDate: test.dueDate,
   }));
+}
 
-// const result = scheduleTasks(all_slot, all_tasks);
-// result.forEach((r, i) => {
-//   console.log("tasks #", i);
-//   console.log("sorted");
-//   console.table(flattenTasks(r.sortedTasks));
-//   console.log("queue");
-//   console.table(r.queue.length > 0 ? flattenTasks(r.queue) : "");
-// });
+const result = scheduleTasks(all_slot, all_tasks);
+result.forEach((r, i) => {
+  console.log("tasks #", i);
+  console.log("sorted");
+  console.table(flattenTasks(r.sortedTasks));
+  console.log("queue");
+  console.table(r.queue.length > 0 ? flattenTasks(r.queue) : "");
+});

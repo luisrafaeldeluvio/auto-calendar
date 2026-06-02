@@ -7,8 +7,8 @@ export interface TimeSlot {
   name: string;
   start: number; //in minutes since 00:00
   end: number;
+  isFromOverlap?: boolean;
 }
-
 export type SlotError = "INVALID_RANGE" | "TIME_EXCEEDED";
 
 export type Weight = 1 | 2 | 3 | 4;

@@ -1,5 +1,5 @@
-import { TOTAL_TIME } from "./constants";
-import type { Result, TimeSlot, SlotError } from "./types";
+import { TOTAL_TIME } from "../core/constants";
+import type { Result, TimeSlot, SlotError } from "../core/types";
 
 interface MutationData {
   slots: TimeSlot[];

@@ -1,4 +1,4 @@
-import type { Task, Result, Event, TimeSlot } from "../types";
+import type { Task, Result, Event, TimeSlot } from "../core/types";
 // import { getSlot } from "./time-slots";
 
 // interface MutationData {

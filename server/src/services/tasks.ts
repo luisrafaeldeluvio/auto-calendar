@@ -1,4 +1,4 @@
-import type { Result, AutoTask } from "./types";
+import type { Result, AutoTask } from "../core/types";
 
 type AutoTaskError =
   | "INVALID_START_DATE"

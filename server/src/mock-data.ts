@@ -1,4 +1,4 @@
-import type { Task, TimeSlot } from "../types";
+import type { Task, TimeSlot } from "./core/types";
 
 export const slot_normal: TimeSlot = {
   id: "1",

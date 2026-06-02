@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assignTaskTimesBySlot } from "./auto-schedule";
-import type { Task, Event } from "../types";
+import type { Task, Event } from "../core/types";
 
 describe("Assign task time", () => {
   it("should assign tasks to available time slots without conflicts", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateTimeslotOverlap } from "./testday";
-import type { Task, TimeSlot } from "../types";
+import type { Task, TimeSlot } from "../core/types";
 
 function createSlot(id: string, start: number, end: number): TimeSlot {
   return { id, name: `Slot ${id}`, start, end };

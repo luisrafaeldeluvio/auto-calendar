@@ -1,5 +1,5 @@
 import type { Result, Task, TimeSlot, Event } from "../core/types";
-import { assignTaskTimesBySlot, type TasksSchedule } from "./auto-schedule";
+import { scheduleTasksInSlot, type TasksSchedule } from "./auto-schedule";
 import {
   slot_normal,
   slot_intersect_with_normal,
@@ -65,13 +65,13 @@ const handleOverlappingSlots = (
   timeslotB: TimeSlot,
   tasks: Task[],
 ): TasksSchedule => {
-  const assignedTasksA = assignTaskTimesBySlot(
+  const assignedTasksA = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotA.id),
     [],
     timeslotA.start,
     timeslotA.end,
   );
-  const assignedTasksB = assignTaskTimesBySlot(
+  const assignedTasksB = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotB.id),
     [],
     timeslotB.start,
@@ -144,7 +144,7 @@ const scheduleTasks = (
 
   const sorted = isOverlapping
     ? handleOverlappingSlots(slot, nextSlot!, allTasks)
-    : assignTaskTimesBySlot(
+    : scheduleTasksInSlot(
         tasks,
         prevTask?.sortedTasks ?? [],
         slot.start,

@@ -1,60 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { assignTaskTimesBySlot } from "./auto-schedule";
+import { scheduleTasksInSlot } from "./auto-schedule";
 import type { Task, Event } from "../core/types";
+
+export const taskFactory = (partial: Partial<Task> = {}): Task => {
+  return {
+    id: crypto.randomUUID(),
+    name: "",
+    notes: "",
+    start: 0,
+    end: 0,
+    isBusy: true,
+    isDone: false,
+    isSortable: true,
+    duration: 0,
+    weight: 1,
+    slotId: "",
+    buffer: { before: 0, after: 0 },
+    startDate: 0,
+    dueDate: 0,
+    ...partial,
+  };
+};
 
 describe("Assign task time", () => {
   it("should assign tasks to available time slots without conflicts", () => {
     const queuedTasks: Task[] = [
-      {
-        id: "1",
-        name: "Task1",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
-      {
-        id: "2",
-        name: "Task2",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
-      {
-        id: "3",
-        name: "Task3",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 120,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
+      taskFactory({ id: "1", duration: 60, weight: 1, slotId: "1" }),
+      taskFactory({ id: "2", duration: 60, weight: 1, slotId: "1" }),
+      taskFactory({ id: "3", duration: 120, weight: 1, slotId: "1" }),
     ];
-    const result = assignTaskTimesBySlot(queuedTasks, [], 0, 240);
+    const result = scheduleTasksInSlot(queuedTasks, [], 0, 240);
 
     expect(result.sortedTasks).toHaveLength(3);
     expect(result.queue).toHaveLength(0);
@@ -83,40 +58,10 @@ describe("Assign task time", () => {
       },
     ];
     const queuedTasks: Task[] = [
-      {
-        id: "1",
-        name: "Task1",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
-      {
-        id: "2",
-        name: "Task2",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
+      taskFactory({ id: "1", duration: 60, weight: 1, slotId: "1" }),
+      taskFactory({ id: "2", duration: 60, weight: 1, slotId: "1" }),
     ];
-    const result = assignTaskTimesBySlot(queuedTasks, busyEvents, 0, 180);
+    const result = scheduleTasksInSlot(queuedTasks, busyEvents, 0, 180);
 
     expect(result.sortedTasks).toHaveLength(2);
     expect(result.sortedTasks[1]).toMatchObject({ start: 120, end: 180 });
@@ -124,56 +69,11 @@ describe("Assign task time", () => {
 
   it("should return remaining tasks when slot is full", () => {
     const queuedTasks: Task[] = [
-      {
-        id: "1",
-        name: "Task1",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
-      {
-        id: "2",
-        name: "Task2",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
-      {
-        id: "3",
-        name: "Task3",
-        notes: "",
-        start: 0,
-        end: 0,
-        isBusy: true,
-        isDone: false,
-        isSortable: true,
-        duration: 60,
-        weight: 1,
-        slotId: "1",
-        buffer: { before: 0, after: 0 },
-        startDate: 0,
-        dueDate: 0,
-      },
+      taskFactory({ id: "1", duration: 60, weight: 1, slotId: "1" }),
+      taskFactory({ id: "2", duration: 60, weight: 1, slotId: "1" }),
+      taskFactory({ id: "3", duration: 60, weight: 1, slotId: "1" }),
     ];
-    const result = assignTaskTimesBySlot(queuedTasks, [], 0, 120);
+    const result = scheduleTasksInSlot(queuedTasks, [], 0, 120);
 
     expect(result.sortedTasks).toHaveLength(2);
     expect(result.queue).toHaveLength(1);
@@ -181,7 +81,7 @@ describe("Assign task time", () => {
   });
 
   it("should handle empty task queue", () => {
-    const result = assignTaskTimesBySlot([], [], 0, 100);
+    const result = scheduleTasksInSlot([], [], 0, 100);
 
     expect(result.sortedTasks).toHaveLength(0);
     expect(result.queue).toHaveLength(0);

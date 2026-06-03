@@ -1,7 +1,7 @@
 import type { Result, Task, TimeSlot } from "../core/types";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
-export const calculateTimeslotOverlap = (
+export const splitOverlappingSlots = (
   slotA: TimeSlot,
   slotB: TimeSlot,
 ): Result<
@@ -38,7 +38,43 @@ export const calculateTimeslotOverlap = (
   };
 };
 
-const handleOverlappingSlots = (
+const resolveConflictsByWeight = (
+  timeslot: TimeSlot,
+  tasks: Task[],
+  result: Task[] = [],
+  queue: Task[] = [],
+): TasksSchedule => {
+  const [curr, ...rest] = tasks;
+  if (!curr)
+    return {
+      sortedTasks: result.filter((t) => t.slotId === timeslot.id),
+      queue: queue.filter((t) => t.slotId === timeslot.id),
+    };
+
+  const overlappingTasks = rest.filter(
+    (t) => t.start <= curr.end && curr.start <= t.end,
+  );
+
+  const isCurrLowerWeight = overlappingTasks.some(
+    (t) => t.weight > curr.weight,
+  );
+
+  if (isCurrLowerWeight)
+    return resolveConflictsByWeight(timeslot, rest, result, [
+      ...queue,
+      ...[curr].map((v) => {
+        return {
+          ...v,
+          start: 0,
+          end: 0,
+        };
+      }),
+    ]);
+
+  return resolveConflictsByWeight(timeslot, rest, [...result, curr], queue);
+};
+
+export const resolveSlotTaskConflicts = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
   tasks: Task[],
@@ -56,47 +92,13 @@ const handleOverlappingSlots = (
     timeslotB.end,
   );
 
-  const combined = [
+  const result = resolveConflictsByWeight(timeslotA, [
     ...assignedTasksA.sortedTasks,
     ...assignedTasksB.sortedTasks,
-  ];
+  ]);
 
-  const recursionTest = (
-    tasks: Task[],
-    result: Task[] = [],
-    queue: Task[] = [],
-  ): TasksSchedule => {
-    const [curr, ...rest] = tasks;
-    if (!curr)
-      return {
-        sortedTasks: result.filter((t) => t.slotId === timeslotA.id),
-        queue: queue.filter((t) => t.slotId === timeslotA.id),
-      };
-
-    const overlappingTasks = rest.filter(
-      (t) => t.start <= curr.end && curr.start <= t.end,
-    );
-
-    const isCurrLowerWeight = overlappingTasks.some(
-      (t) => t.weight > curr.weight,
-    );
-
-    if (isCurrLowerWeight)
-      return recursionTest(rest, result, [
-        ...queue,
-        ...[curr].map((v) => {
-          return {
-            ...v,
-            start: 0,
-            end: 0,
-          };
-        }),
-      ]);
-
-    return recursionTest(rest, [...result, curr], queue);
+  return {
+    sortedTasks: result.sortedTasks,
+    queue: [...result.queue, ...assignedTasksA.queue],
   };
-
-  console.warn("THIS WAS RUNNNNNNNNNNNNNNNNN");
-  console.warn(recursionTest(combined));
-  return recursionTest(combined);
 };

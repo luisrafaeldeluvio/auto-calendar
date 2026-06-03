@@ -1,4 +1,8 @@
 import type { Result, Task, TimeSlot } from "../core/types";
+import {
+  resolveSlotTaskConflicts,
+  splitOverlappingSlots,
+} from "./resolveOverlappingTasks";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
 //per day palang ito
@@ -15,11 +19,11 @@ const scheduleTasks = (
   const prevTask = sortedTasks[sortedTasks.length - 1];
 
   const isOverlapping = nextSlot
-    ? calculateTimeslotOverlap(slot, nextSlot).ok
+    ? splitOverlappingSlots(slot, nextSlot).ok
     : false;
 
   const sorted = isOverlapping
-    ? resolveOverlappingTasksByWeight(slot, nextSlot!, allTasks)
+    ? resolveSlotTaskConflicts(slot, nextSlot!, allTasks)
     : scheduleTasksInSlot(
         tasks,
         prevTask?.sortedTasks ?? [],

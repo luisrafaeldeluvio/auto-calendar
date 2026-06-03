@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scheduleTasksInSlot } from "./auto-schedule";
+import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 import type { Task, Event } from "../core/types";
 
 export const taskFactory = (partial: Partial<Task> = {}): Task => {

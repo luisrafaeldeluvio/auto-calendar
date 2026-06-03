@@ -7,7 +7,7 @@ import {
 } from "date-fns/fp";
 import type { AutoTask, TimeSlot, Event } from "../core/types";
 import { getTime } from "date-fns";
-import { scheduleTasks } from "./auto-schedule";
+import { scheduleTasks } from "./scheduleTasksInSlot";
 
 interface DateInterval {
   start: number;

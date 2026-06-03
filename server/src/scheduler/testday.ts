@@ -1,5 +1,5 @@
 import type { Result, Task, TimeSlot, Event } from "../core/types";
-import { scheduleTasksInSlot, type TasksSchedule } from "./auto-schedule";
+import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 import {
   slot_normal,
   slot_intersect_with_normal,

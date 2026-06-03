@@ -2,7 +2,7 @@ import type { Result, Task, TimeSlot } from "../core/types";
 import {
   resolveSlotTaskConflicts,
   splitOverlappingSlots,
-} from "./resolveOverlappingTasks";
+} from "./resolveSlotTaskConflicts";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
 //per day palang ito

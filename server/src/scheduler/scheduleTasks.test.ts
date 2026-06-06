@@ -1,19 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { calculateTimeslotOverlap } from "./testday";
+import { splitOverlappingSlots } from "./resolveSlotTaskConflicts";
 import type { Task, TimeSlot } from "../core/types";
 
 function createSlot(id: string, start: number, end: number): TimeSlot {
   return { id, name: `Slot ${id}`, start, end };
 }
 
-describe("calculateTimeslotOverlap", () => {
+describe("splitOverlappingSlots", () => {
   // Precondition: slotA.start < slotB.start for all tests
 
   it("1. Partial overlap – intervals share a common subrange", () => {
     const slotA = createSlot("A", 0, 5);
     const slotB = createSlot("B", 3, 10);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -34,7 +34,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 0, 5);
     const slotB = createSlot("B", 5, 10);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(false);
     expect(!result.ok ? result.error : "").toBe("SLOTS_NOT_INTERSECT");
@@ -44,7 +44,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 0, 4);
     const slotB = createSlot("B", 5, 10);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(false);
     expect(!result.ok ? result.error : "").toBe("SLOTS_NOT_INTERSECT");
@@ -54,7 +54,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 0, 10);
     const slotB = createSlot("B", 3, 7);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -75,7 +75,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 3, 7);
     const slotB = createSlot("B", 5, 10);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -97,7 +97,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 0, 5);
     const slotB = createSlot("B", 2, 5);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -118,7 +118,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 1, 1);
     const slotB = createSlot("B", 2, 2);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(false);
     expect(!result.ok ? result.error : "").toBe("SLOTS_NOT_INTERSECT");
@@ -128,7 +128,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 1, 1);
     const slotB = createSlot("B", 2, 3);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
 
     expect(result.ok).toBe(false);
     expect(!result.ok ? result.error : "").toBe("SLOTS_NOT_INTERSECT");
@@ -138,7 +138,7 @@ describe("calculateTimeslotOverlap", () => {
     const slotA = createSlot("A", 0, 5);
     const slotB = createSlot("B", 5, 10);
 
-    const result = calculateTimeslotOverlap(slotA, slotB);
+    const result = splitOverlappingSlots(slotA, slotB);
     expect(result.ok).toBe(false);
   });
 });

@@ -1,149 +1,110 @@
+// import { scheduleTasks } from "./scheduleTasks"
+
 import {
-  areIntervalsOverlapping,
   eachDayOfInterval,
-  getDay,
-  startOfWeek,
-  subDays,
-} from "date-fns/fp";
-import type { AutoTask, TimeSlot, Event } from "../core/types";
-import { getTime } from "date-fns";
-import { scheduleTasks } from "./scheduleTasksInSlot";
+  interval,
+  isAfter,
+  isBefore,
+  isSameDay,
+} from "date-fns";
+import type { Task, TimeSlot } from "../core/types";
+import { scheduleTasks } from "./scheduleTasks";
+import type { TasksSchedule } from "./scheduleTasksInSlot";
 
-interface DateInterval {
-  start: number;
-  end: number;
-}
+// we have an array of tasks
+// an agenda is like a selection of days (range).
 
-type AutoTaskMap = Record<
-  string,
-  {
-    tasks: AutoTask[];
-    queue: AutoTask[];
-  }
->;
+// we then get the tasks that is within that range through their start date and due date(where in this casae startdate and duedate is the range).
+//     basically the tasks range must overlap with the agenda rangesOverlap.
+// then probably rank them all by priority?
 
-export interface ScheduleWindow {
-  id: string;
-  dateInterval: DateInterval;
-  autoTaskMap: AutoTaskMap;
-}
+// we then filter the tasks for each day and call scheduleTasks on them.
 
-export const getTasksInInterval = (
-  tasks: readonly AutoTask[],
-  dateInterval: Readonly<DateInterval>,
-) =>
-  tasks.filter((t) =>
-    areIntervalsOverlapping(dateInterval)({
-      start: t.startDate,
-      end: t.dueDate,
-    }),
+// ------
+
+// wait do we assign their dates first and THEN run scheduleTasks? \
+
+// so the tasks will be put in the array as the queue
+
+// startDate >= agendaDate && dueDate <= agendaDate
+//     getting the tasks that fits per date putting in in an arrayBuffer, then calling scheduleTasks on it.
+
+//     then the left over tasks from scheduleTasks will be put back into the queue
+
+// assuming that allTasks are the filtered tasks
+
+export const agenda = (
+  start: Date,
+  end: Date,
+  allTasks: Task[],
+  timeSlots: TimeSlot[],
+) => {
+  const agendaInterval = interval(start, end);
+  console.log(agendaInterval);
+
+  const dates: Date[] = eachDayOfInterval(agendaInterval);
+  console.log(dates);
+
+  //   console.log(allTasks);
+  const scheduleAgenda = scheduleTasksInAgenda(dates, allTasks, timeSlots);
+
+  return scheduleAgenda;
+};
+
+const scheduleTasksInAgenda = (
+  dates: Date[],
+  allTasks: Task[],
+  timeSlots: TimeSlot[],
+  scheduled: Task[] = [],
+): TasksSchedule => {
+  const [date, ...rest] = dates;
+  if (!date)
+    return {
+      sortedTasks: scheduled ?? [],
+      queue: allTasks,
+    };
+
+  const tasksInDate = allTasks.filter((task) => {
+    return (
+      isBefore(task.startDate, date) ||
+      (isSameDay(task.startDate, date) && isSameDay(task.dueDate, date))
+    );
+  });
+
+  const scheduleTasksInDate = scheduleTasks(timeSlots, tasksInDate);
+
+  const flatten = scheduleTasksInDate.reduce<Task[]>(
+    (acc, curr) => [...acc, ...curr.sortedTasks],
+    [],
   );
 
-export const createDateInterval = (currentDate: number) => {
-  const DATE_INTERVAL_MAX = 518400000 as const; // 6 days in ms.
-  const weekStart = getTime(startOfWeek(currentDate));
+  //   console.log("scheduled tasks in date", flatten);
 
-  return { start: weekStart, end: weekStart + DATE_INTERVAL_MAX };
-};
-
-export const createScheduleWindow = (
-  tasksInInterval: readonly AutoTask[],
-  currentDate: number,
-) => {
-  const dateInterval = createDateInterval(currentDate);
-
-  return {
-    id: crypto.randomUUID(),
-    dateInterval: dateInterval,
-    autoTaskMap: createAutoTaskMap(tasksInInterval, dateInterval),
-  } as ScheduleWindow;
-};
-
-export const sortScheduleWindow = (
-  scheduleWindow: Readonly<ScheduleWindow>,
-  events: readonly Event[],
-  slots: readonly TimeSlot[],
-) => {
-  const newAutoTaskMap: AutoTaskMap = Object.entries(
-    scheduleWindow.autoTaskMap,
-  ).reduce((acc, [day, { tasks, queue }]) => {
-    const scheduled = scheduleTasks(queue, events, slots);
-
-    if (scheduled.ok) {
-      console.log(scheduled.data.queue);
-      return {
-        ...acc,
-        [day]: {
-          tasks: scheduled.data.tasks,
-          queue: scheduled.data.queue,
-        },
-      };
-    } else {
-      return {
-        ...acc,
-        [day]: {
-          tasks: tasks,
-          queue: queue,
-        },
-      };
-    }
-  }, {} as AutoTaskMap);
-
-  return { ...scheduleWindow, autoTaskMap: newAutoTaskMap } as ScheduleWindow;
-};
-
-const createAutoTaskMap = (
-  tasks: readonly AutoTask[],
-  dateInterval: Readonly<DateInterval>,
-) => {
-  const dateIntervalArr = eachDayOfInterval(dateInterval);
-
-  const x = dateIntervalArr.reduce(
-    (acc, r) => {
-      const ranked = tasks.filter((t, index) => {
-        if (acc.rankedTaskPool.includes(t)) return false;
-        if (t.startDate >= getTime(r)) return false;
-
-        const targetDay = Math.min(getDay(r) + index, 6);
-        const rank = t.weight - getDay(t.dueDate);
-
-        if (rank > 0 || rank <= -1 + targetDay) return true;
-      });
-
-      return {
-        result: {
-          ...acc.result,
-          [getTime(subDays(1, r))]: {
-            tasks: [],
-            queue: ranked,
-          },
-        },
-        rankedTaskPool: [...acc.rankedTaskPool, ...ranked],
-      };
-    },
-    {
-      result: {},
-      rankedTaskPool: [],
-    } as {
-      result: AutoTaskMap;
-      rankedTaskPool: AutoTask[];
-    },
+  const queue = allTasks.filter(
+    (task) => !flatten.some((task2) => task.id === task2.id),
   );
 
-  return x.result;
+  return scheduleTasksInAgenda(rest, queue, timeSlots, [
+    ...scheduled,
+    ...flatten,
+  ]);
 };
 
-// okay so the new problem is, say the start day is 2 and due date is 3
-// when the slot is full, instead of moving the task on 3 it will just be moved to the queue
+// what i whant to do is extract the queue tasks on each task schedule,
+// so how would i do this?
 
-// Now i have this side effect where the tasks are only being scheduled on the start date when
-// the timeslots are full instead of moving the task on other availabled days based on their due date.
+// loop thorugh the array of task schedule, push the queue to an array and replace the queue with [];
 
-// I was thinking of maybe getting all the leftover queue tasks, filtering those who still has
-// a due date, and try assigning them to those days and ranking and sorting them again using bubble sort.
-// This also means that for every iteration of the days, i take its leftover queue and move them to the
-// queue of the next day and so on. IF it was not able to find on any of the days,
-// the task will be put back on its original queue.
+// i think I need to make a new agenda thingy
+// for basically managing which tasks go to which date and transferring queued tasks to another date
+// in startDate and dueDate
 
-// okay so i dont need to rank and sort them again, i simply must just put them on the queue of the next
-// day on sortScheduleWindow()
+// flow:
+// the user create/update/delete a task/event
+// the request is transferred to the server
+// the server then sends the new tasks order
+
+// okay so after this, i kind of want to build a tui instead of react web,
+// i can use Ink TUI to make it, it uses react to display stuff on the terminal.
+
+/* https://github.com/vadimdemedes/ink */

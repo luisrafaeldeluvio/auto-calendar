@@ -6,12 +6,12 @@ import {
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
 //per day palang ito
-const scheduleTasks = (
+export const scheduleTasks = (
   timeSlots: TimeSlot[],
   allTasks: Task[],
   usedSlots: TimeSlot[] = [],
   sortedTasks: TasksSchedule[] = [],
-) => {
+): TasksSchedule[] => {
   const [slot, nextSlot, ...slots] = timeSlots;
   if (!slot) return sortedTasks;
 

@@ -18,8 +18,8 @@ export interface Event {
   name: string;
   notes?: string;
 
-  start: Date; // unix in ms
-  end: Date; // unix in ms
+  start: number; // unix in ms
+  end: number; // unix in ms
 
   isBusy: boolean;
 }
@@ -37,6 +37,6 @@ export interface Task extends Event {
     after: number;
   };
 
-  startDate: Date;
-  dueDate: Date;
+  startDate: number; // unix in ms
+  dueDate: number; // unix in ms
 }

@@ -12,8 +12,11 @@ export const scheduleTasksInSlot = (
   slotEndTime: number,
   sortedTasks: Task[] = [],
 ): TasksSchedule => {
-  const [currentTask, ...remainingTasks] = queuedTasks;
+  const [currentTask, ...remainingTasks] = !sortedTasks.length
+    ? queuedTasks.toSorted((a, b) => b.weight - a.weight)
+    : queuedTasks;
   if (!currentTask) return { sortedTasks: sortedTasks, queue: [] };
+  // maybe i can just sort them all once at first??
 
   const currentTaskStartTime: number = slotStartTime;
   const currentTaskEndTime: number =

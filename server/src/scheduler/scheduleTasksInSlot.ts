@@ -11,58 +11,52 @@ export const scheduleTasksInSlot = (
   activeEvents: readonly Event[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
-  sortedTasks: Event[] = [],
-): TasksSchedule => {
-  const [currentTask, ...remainingTasks] = !sortedTasks.length
-    ? queuedTasks.toSorted((a, b) => b.weight - a.weight)
-    : queuedTasks;
-  if (!currentTask) return { sortedTasks: sortedTasks, queue: [] };
+) => {
+  const busyEvents = activeEvents.filter((e) => e.isBusy);
+  const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
 
-  const currentTaskStartTime: Temporal.PlainTime = slotStartTime;
-  const currentTaskEndTime: Temporal.PlainTime = currentTaskStartTime.add(
-    currentTask.duration ?? { minutes: 0 },
-  );
+  const schedule = (
+    tasksToProcess: readonly Event[],
+    currentTime: Temporal.PlainTime,
+    sortedTasks: Event[],
+  ): TasksSchedule => {
+    const [task, ...remainingTasks] = tasksToProcess;
+    if (!task) return { sortedTasks: sortedTasks, queue: [] };
 
-  const busyEvents: readonly Event[] = !sortedTasks.length
-    ? activeEvents.filter((e) => e.isBusy)
-    : activeEvents;
-
-  const overlappingEvent: Event | undefined = busyEvents.find(
-    (e) =>
-      Temporal.PlainTime.compare(e.end ?? {}, currentTaskStartTime) === 1 &&
-      Temporal.PlainTime.compare(currentTaskEndTime, e.start ?? {}) === 1,
-  );
-
-  if (overlappingEvent)
-    return scheduleTasksInSlot(
-      queuedTasks,
-      busyEvents,
-      overlappingEvent.end ?? Temporal.PlainTime.from({ minute: 0 }),
-      slotEndTime,
-      [...sortedTasks],
+    const taskStartTime: Temporal.PlainTime = currentTime;
+    const taskEndTime: Temporal.PlainTime = taskStartTime.add(
+      task.duration ?? { minutes: 0 },
     );
 
-  const isSlotFull =
-    Temporal.PlainTime.compare(currentTaskEndTime, slotEndTime) === 1;
+    const overlappingEvent: Event | undefined = busyEvents.find(
+      (e) =>
+        e.start &&
+        e.end &&
+        Temporal.PlainTime.compare(e.end, taskStartTime) === 1 &&
+        Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
+    );
 
-  if (isSlotFull) {
-    return {
-      sortedTasks: sortedTasks,
-      queue: [...remainingTasks, currentTask],
+    if (overlappingEvent && overlappingEvent.end)
+      return schedule(tasksToProcess, overlappingEvent.end, [...sortedTasks]);
+
+    const isSlotFull =
+      Temporal.PlainTime.compare(taskEndTime, slotEndTime) === 1;
+
+    if (isSlotFull) {
+      return {
+        sortedTasks: sortedTasks,
+        queue: [...remainingTasks, task],
+      };
+    }
+
+    const newTask: Event = {
+      ...task,
+      start: taskStartTime,
+      end: taskEndTime,
     };
-  }
 
-  const newTask: Event = {
-    ...currentTask,
-    start: currentTaskStartTime,
-    end: currentTaskEndTime,
+    return schedule(remainingTasks, taskEndTime, [...sortedTasks, newTask]);
   };
 
-  return scheduleTasksInSlot(
-    remainingTasks,
-    busyEvents,
-    currentTaskEndTime,
-    slotEndTime,
-    [...sortedTasks, newTask],
-  );
+  return schedule(sortTasks, slotStartTime, []);
 };

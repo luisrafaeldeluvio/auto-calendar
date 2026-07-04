@@ -1,36 +1,51 @@
-import {
-  eachDayOfInterval,
-  getTime,
-  interval,
-  isBefore,
-  isSameDay,
-} from "date-fns";
-import type { Task, TimeSlot } from "../core/types";
+import { Temporal } from "@js-temporal/polyfill";
+import type { Event, Result, TimeSlot } from "../core/types";
 import { scheduleTasks } from "./scheduleTasks";
 import type { TasksSchedule } from "./scheduleTasksInSlot";
 
-export const agenda = (
-  start: number,
-  end: number,
-  allTasks: Task[],
-  timeSlots: TimeSlot[],
-) => {
-  const agendaInterval = interval(start, end);
+interface Interval {
+  start: Temporal.PlainDate;
+  end: Temporal.PlainDate;
+}
+export const interval = (
+  start: Temporal.PlainDate,
+  end: Temporal.PlainDate,
+): Result<Interval, "INVALID_DATE_RANGE"> => {
+  if (Temporal.PlainDate.compare(start, end) > 0)
+    return { ok: false, error: "INVALID_DATE_RANGE" };
+  return {
+    ok: true,
+    data: { start, end },
+  };
+};
 
-  const dates: number[] = eachDayOfInterval(agendaInterval).map((d) =>
-    getTime(d),
+export const eachDayOfInterval = ({ start, end }: Interval) => {
+  const totalDays = start.until(end, { largestUnit: "day" }).days;
+
+  return Array.from({ length: totalDays + 1 }, (_, i) =>
+    start.add({ days: i }),
   );
+};
 
-  const scheduleAgenda = scheduleTasksInAgenda(dates, allTasks, timeSlots);
+export const agenda = (
+  start: Temporal.PlainDate,
+  end: Temporal.PlainDate,
+  allTasks: Event[],
+  timeSlots: TimeSlot[],
+): Result<TasksSchedule, "INVALID_DATE_RANGE"> => {
+  const agendaInterval = interval(start, end);
+  if (!agendaInterval.ok) return agendaInterval;
 
-  return scheduleAgenda;
+  const dates = eachDayOfInterval(agendaInterval.data).map((d) => d);
+  console.log(dates);
+  return { ok: true, data: scheduleTasksInAgenda(dates, allTasks, timeSlots) };
 };
 
 const scheduleTasksInAgenda = (
-  dates: number[],
-  allTasks: Task[],
+  dates: Temporal.PlainDate[],
+  allTasks: Event[],
   timeSlots: TimeSlot[],
-  scheduled: Task[] = [],
+  scheduled: Event[] = [],
 ): TasksSchedule => {
   const [date, ...rest] = dates;
   if (!date)
@@ -41,21 +56,21 @@ const scheduleTasksInAgenda = (
 
   const tasksInDate = allTasks.filter((task) => {
     return (
-      isBefore(task.startDate, date) ||
-      (isSameDay(task.startDate, date) && isSameDay(task.dueDate, date))
+      Temporal.PlainDateTime.compare(task.startDate ?? {}, date) === -1 ||
+      (task.startDate?.equals(date) && task.dueDate?.equals(date))
     );
   });
 
   const scheduleTasksInDate = scheduleTasks(timeSlots, tasksInDate);
 
   const flatten = scheduleTasksInDate
-    .reduce<Task[]>((acc, curr) => [...acc, ...curr.sortedTasks], [])
+    .reduce<Event[]>((acc, curr) => [...acc, ...curr.sortedTasks], [])
     .map((t) => {
       // i should probably turn this into a separate function
       return {
         ...t,
-        start: date + t.start * 60000,
-        end: date + t.end * 60000,
+        start: date.toPlainDateTime(t.start ?? {}),
+        end: date.toPlainDateTime(t.end ?? {}),
       };
     });
 
@@ -68,7 +83,7 @@ const scheduleTasksInAgenda = (
 
   return scheduleTasksInAgenda(rest, queue, timeSlots, [
     ...scheduled,
-    ...flatten,
+    ...flatten, // because of the map
   ]);
 };
 

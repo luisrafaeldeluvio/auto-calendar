@@ -1,5 +1,5 @@
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
-import { parse, format, startOfWeek, getDay, addDays } from "date-fns";
+import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { agenda } from "../../server/src/scheduler/agenda";
 const locales = { "en-US": enUS };
@@ -7,7 +7,8 @@ const locales = { "en-US": enUS };
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import { useState } from "react";
-import type { Task } from "../../server/src/core/types";
+import type { Event, TimeSlot } from "../../server/src/core/types";
+import { Temporal } from "@js-temporal/polyfill";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -17,88 +18,104 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const mockSlot = [
+const mockSlot: TimeSlot[] = [
   {
     id: "1",
     name: "whole day",
-    start: 0,
-    end: 180,
+    start: Temporal.PlainTime.from({ hour: 0 }),
+    end: Temporal.PlainTime.from({ hour: 3 }),
   },
   {
     id: "2",
     name: "whole day",
-    start: 120,
-    end: 240,
+    start: Temporal.PlainTime.from({ hour: 2 }),
+    end: Temporal.PlainTime.from({ hour: 4 }),
   },
 ];
 
-const mockTask: Task[] = [
+const mockTask: Event[] = [
   {
     id: "1",
     name: "Chores",
-    start: 0,
-    end: 0,
+    start: null,
+    end: null,
     isBusy: true,
     isDone: false,
     isSortable: true,
-    duration: 120,
+    duration: Temporal.Duration.from({ hours: 2 }),
     weight: 2,
     slotId: "1",
-    buffer: { before: 0, after: 0 },
-    startDate: new Date().getTime(),
-    dueDate: new Date().getTime(),
+    buffer: { before: null, after: null },
+    startDate: Temporal.Now.plainDateTimeISO(),
+    dueDate: Temporal.Now.plainDateTimeISO(),
+    type: "task",
+    notes: "",
+    isSorted: false,
   },
   {
     id: "2",
     name: "Studying",
-    start: 0,
-    end: 0,
+    start: null,
+    end: null,
     isBusy: true,
     isDone: false,
     isSortable: true,
-    duration: 60,
+    duration: Temporal.Duration.from({ hours: 1 }),
     weight: 3,
     slotId: "1",
-    buffer: { before: 0, after: 0 },
-    startDate: new Date().getTime(),
-    dueDate: new Date().getTime(),
+    buffer: { before: null, after: null },
+    startDate: Temporal.Now.plainDateTimeISO(),
+    dueDate: Temporal.Now.plainDateTimeISO(),
+    type: "task",
+    notes: "",
+    isSorted: false,
   },
   {
     id: "3",
     name: "School",
-    start: 0,
-    end: 0,
+    start: null,
+    end: null,
     isBusy: true,
     isDone: false,
     isSortable: true,
-    duration: 60,
+    duration: Temporal.Duration.from({ hours: 2 }),
     weight: 1,
     slotId: "2",
-    buffer: { before: 0, after: 0 },
-    startDate: addDays(new Date(), 1).getTime(),
-    dueDate: addDays(new Date(), 1).getTime(),
+    buffer: { before: null, after: null },
+    startDate: Temporal.Now.plainDateTimeISO().add({ days: 1 }),
+    dueDate: Temporal.Now.plainDateTimeISO().add({ days: 1 }),
+    type: "task",
+    notes: "",
+    isSorted: false,
   },
 ];
 
 const data = agenda(
-  new Date().getTime(),
-  addDays(new Date(), 6).getTime(),
+  Temporal.Now.plainDateISO(),
+  Temporal.Now.plainDateISO().add({ days: 6 }),
   mockTask,
   mockSlot,
 );
 
 console.log(data);
 
-const processedDate = data.sortedTasks.map((t) => {
-  return {
-    title: t.name,
-    start: new Date(t.start),
-    end: new Date(t.end),
-  };
-});
+const processedDate = data.ok
+  ? data.data.sortedTasks.map((t) => {
+      console.log(t.name);
+      return {
+        title: t.name,
+        start: new Date(t.start.toString()),
+        end: new Date(t.end.toString()),
+      };
+    })
+  : [];
+
+console.log(processedDate);
 
 function App() {
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(
+    new Date(Temporal.Now.plainDateISO().add({ days: 1 }).toString()),
+  );
 
   return (
     <>

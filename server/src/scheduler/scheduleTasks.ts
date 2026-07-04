@@ -1,4 +1,4 @@
-import type { Result, Task, TimeSlot } from "../core/types";
+import type { Event, TimeSlot } from "../core/types";
 import {
   resolveSlotTaskConflicts,
   splitOverlappingSlots,
@@ -8,7 +8,7 @@ import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 //per day palang ito
 export const scheduleTasks = (
   timeSlots: TimeSlot[],
-  allTasks: Task[],
+  allTasks: Event[],
   usedSlots: TimeSlot[] = [],
   sortedTasks: TasksSchedule[] = [],
 ): TasksSchedule[] => {
@@ -26,7 +26,7 @@ export const scheduleTasks = (
     ? resolveSlotTaskConflicts(slot, nextSlot!, allTasks)
     : scheduleTasksInSlot(
         tasks,
-        prevTask?.sortedTasks ?? [],
+        prevTask?.sortedTasks ?? [], // why did i set this as events when its supposed to be tasks?
         slot.start,
         slot.end,
       );

@@ -1,4 +1,5 @@
-import type { Result, Task, TimeSlot } from "../core/types";
+import { Temporal } from "@js-temporal/polyfill";
+import type { Result, Event, TimeSlot } from "../core/types";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
 export const splitOverlappingSlots = (
@@ -8,8 +9,8 @@ export const splitOverlappingSlots = (
   { readonly overlap: TimeSlot; readonly remainder: TimeSlot[] },
   "SLOTS_NOT_INTERSECT"
 > => {
-  const isIntersect = slotB.start < slotA.end;
-  const isInside = slotA.end > slotB.end;
+  const isIntersect = Temporal.PlainTime.compare(slotB.start, slotA.end) === -1;
+  const isInside = Temporal.PlainTime.compare(slotA.end, slotB.end) === 1;
 
   if (!isIntersect) return { ok: false, error: "SLOTS_NOT_INTERSECT" };
 
@@ -17,7 +18,10 @@ export const splitOverlappingSlots = (
     id: crypto.randomUUID(),
     name: `Overlap of ${slotA.id} and ${slotB.id}`,
     start: slotB.start,
-    end: slotA.end > slotB.end ? slotB.end : slotA.end,
+    end:
+      Temporal.PlainTime.compare(slotA.end, slotB.end) === 1
+        ? slotB.end
+        : slotA.end,
   };
 
   return {
@@ -40,9 +44,9 @@ export const splitOverlappingSlots = (
 
 const resolveConflictsByWeight = (
   timeslot: TimeSlot,
-  tasks: Task[],
-  result: Task[] = [],
-  queue: Task[] = [],
+  tasks: Event[],
+  result: Event[] = [],
+  queue: Event[] = [],
 ): TasksSchedule => {
   const [curr, ...rest] = tasks;
   if (!curr)
@@ -52,9 +56,10 @@ const resolveConflictsByWeight = (
     };
 
   const overlappingTasks = rest.filter(
-    (t) => t.start <= curr.end && curr.start <= t.end,
+    (t) =>
+      Temporal.PlainTime.compare(t.start ?? {}, curr.end ?? {}) <= 0 &&
+      Temporal.PlainTime.compare(curr.start ?? {}, t.end ?? {}) <= 0,
   );
-
   const isCurrLowerWeight = overlappingTasks.some(
     (t) => t.weight > curr.weight,
   );
@@ -65,8 +70,8 @@ const resolveConflictsByWeight = (
       ...[curr].map((v) => {
         return {
           ...v,
-          start: 0,
-          end: 0,
+          start: null,
+          end: null,
         };
       }),
     ]);
@@ -77,7 +82,7 @@ const resolveConflictsByWeight = (
 export const resolveSlotTaskConflicts = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
-  tasks: Task[],
+  tasks: Event[],
 ): TasksSchedule => {
   const assignedTasksA = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotA.id),

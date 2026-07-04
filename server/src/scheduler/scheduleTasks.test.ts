@@ -1,9 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { splitOverlappingSlots } from "./resolveSlotTaskConflicts";
-import type { Task, TimeSlot } from "../core/types";
+import { Temporal } from "@js-temporal/polyfill";
+import type { TimeSlot } from "../core/types";
 
-function createSlot(id: string, start: number, end: number): TimeSlot {
-  return { id, name: `Slot ${id}`, start, end };
+function createSlot(id: string, startHour: number, endHour: number): TimeSlot {
+  return {
+    id,
+    name: `Slot ${id}`,
+    start: Temporal.PlainTime.from({ hour: startHour }),
+    end: Temporal.PlainTime.from({ hour: endHour }),
+  };
+}
+function toPlain(slot: any) {
+  return {
+    id: slot.id,
+    name: slot.name,
+    start:
+      typeof slot.start?.toString === "function"
+        ? slot.start.toString()
+        : slot.start,
+    end:
+      typeof slot.end?.toString === "function" ? slot.end.toString() : slot.end,
+  };
 }
 
 describe("splitOverlappingSlots", () => {
@@ -18,14 +36,14 @@ describe("splitOverlappingSlots", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       const { overlap, remainder } = result.data;
-      expect(overlap).toMatchObject({
+      expect(toPlain(overlap)).toMatchObject({
         name: "Overlap of A and B",
-        start: 3,
-        end: 5,
+        start: "03:00:00",
+        end: "05:00:00",
       });
-      expect(remainder).toEqual([
-        { ...slotA, end: 3 },
-        { ...slotB, start: 5 },
+      expect(remainder.map(toPlain)).toEqual([
+        { id: "A", name: "Slot A", start: "00:00:00", end: "03:00:00" },
+        { id: "B", name: "Slot B", start: "05:00:00", end: "10:00:00" },
       ]);
     }
   });
@@ -59,14 +77,14 @@ describe("splitOverlappingSlots", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       const { overlap, remainder } = result.data;
-      expect(overlap).toMatchObject({
+      expect(toPlain(overlap)).toMatchObject({
         name: "Overlap of A and B",
-        start: 3,
-        end: 7,
+        start: "03:00:00",
+        end: "07:00:00",
       });
-      expect(remainder).toEqual([
-        { ...slotA, end: 3 },
-        { ...slotB, start: 7 },
+      expect(remainder.map(toPlain)).toEqual([
+        { id: "A", name: "Slot A", start: "00:00:00", end: "03:00:00" },
+        { id: "B", name: "Slot B", start: "07:00:00", end: "07:00:00" },
       ]);
     }
   });
@@ -80,15 +98,14 @@ describe("splitOverlappingSlots", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       const { overlap, remainder } = result.data;
-      // Overlap is from B.start to A.end because A ends earlier
-      expect(overlap).toMatchObject({
+      expect(toPlain(overlap)).toMatchObject({
         name: "Overlap of A and B",
-        start: 5,
-        end: 7,
+        start: "05:00:00",
+        end: "07:00:00",
       });
-      expect(remainder).toEqual([
-        { ...slotA, end: 5 }, // first part of A before overlap
-        { ...slotB, start: 7 }, // second part of B after overlap
+      expect(remainder.map(toPlain)).toEqual([
+        { id: "A", name: "Slot A", start: "03:00:00", end: "05:00:00" },
+        { id: "B", name: "Slot B", start: "07:00:00", end: "10:00:00" },
       ]);
     }
   });
@@ -102,14 +119,14 @@ describe("splitOverlappingSlots", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       const { overlap, remainder } = result.data;
-      expect(overlap).toMatchObject({
+      expect(toPlain(overlap)).toMatchObject({
         name: "Overlap of A and B",
-        start: 2,
-        end: 5,
+        start: "02:00:00",
+        end: "05:00:00",
       });
-      expect(remainder).toEqual([
-        { ...slotA, end: 2 },
-        { ...slotB, start: 5 }, // slotB.start becomes 5, which equals slotB.end → zero-length slot
+      expect(remainder.map(toPlain)).toEqual([
+        { id: "A", name: "Slot A", start: "00:00:00", end: "02:00:00" },
+        { id: "B", name: "Slot B", start: "05:00:00", end: "05:00:00" },
       ]);
     }
   });

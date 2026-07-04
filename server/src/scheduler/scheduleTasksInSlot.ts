@@ -1,43 +1,50 @@
-import type { Task, Event } from "../core/types";
+import { Temporal } from "@js-temporal/polyfill";
+import type { Event } from "../core/types";
 
 export interface TasksSchedule {
-  sortedTasks: Task[];
-  queue: Task[];
+  sortedTasks: Event[];
+  queue: Event[];
 }
 
 export const scheduleTasksInSlot = (
-  queuedTasks: readonly Task[],
-  activeEvents: readonly (Event | Task)[],
-  slotStartTime: number,
-  slotEndTime: number,
-  sortedTasks: Task[] = [],
+  queuedTasks: readonly Event[],
+  activeEvents: readonly Event[],
+  slotStartTime: Temporal.PlainTime,
+  slotEndTime: Temporal.PlainTime,
+  sortedTasks: Event[] = [],
 ): TasksSchedule => {
   const [currentTask, ...remainingTasks] = !sortedTasks.length
     ? queuedTasks.toSorted((a, b) => b.weight - a.weight)
     : queuedTasks;
   if (!currentTask) return { sortedTasks: sortedTasks, queue: [] };
-  // maybe i can just sort them all once at first??
 
-  const currentTaskStartTime: number = slotStartTime;
-  const currentTaskEndTime: number =
-    currentTaskStartTime + currentTask.duration;
-  const busyEvents: readonly (Event | Task)[] = !sortedTasks.length
+  const currentTaskStartTime: Temporal.PlainTime = slotStartTime;
+  const currentTaskEndTime: Temporal.PlainTime = currentTaskStartTime.add(
+    currentTask.duration ?? { minutes: 0 },
+  );
+
+  const busyEvents: readonly Event[] = !sortedTasks.length
     ? activeEvents.filter((e) => e.isBusy)
     : activeEvents;
-  const overlappingEvent: Event | Task | undefined = busyEvents.find(
-    (e) => e.end > currentTaskStartTime && currentTaskEndTime > e.start,
+
+  const overlappingEvent: Event | undefined = busyEvents.find(
+    (e) =>
+      Temporal.PlainTime.compare(e.end ?? {}, currentTaskStartTime) === 1 &&
+      Temporal.PlainTime.compare(currentTaskEndTime, e.start ?? {}) === 1,
   );
 
   if (overlappingEvent)
     return scheduleTasksInSlot(
       queuedTasks,
       busyEvents,
-      overlappingEvent.end,
+      overlappingEvent.end ?? Temporal.PlainTime.from({ minute: 0 }),
       slotEndTime,
       [...sortedTasks],
     );
 
-  const isSlotFull = currentTaskEndTime > slotEndTime;
+  const isSlotFull =
+    Temporal.PlainTime.compare(currentTaskEndTime, slotEndTime) === 1;
+
   if (isSlotFull) {
     return {
       sortedTasks: sortedTasks,
@@ -45,7 +52,7 @@ export const scheduleTasksInSlot = (
     };
   }
 
-  const newTask: Task = {
+  const newTask: Event = {
     ...currentTask,
     start: currentTaskStartTime,
     end: currentTaskEndTime,

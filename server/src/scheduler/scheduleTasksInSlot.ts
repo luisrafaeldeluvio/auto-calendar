@@ -53,6 +53,8 @@ export const scheduleTasksInSlot = (
       ...task,
       start: taskStartTime,
       end: taskEndTime,
+      isBusy: true,
+      isSorted: true,
     };
 
     return schedule(remainingTasks, taskEndTime, [...sortedTasks, newTask]);

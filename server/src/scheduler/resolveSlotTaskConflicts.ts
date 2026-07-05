@@ -1,46 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Result, Event, TimeSlot } from "../core/types";
+import type { Event, TimeSlot } from "../core/types";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
-
-export const splitOverlappingSlots = (
-  slotA: TimeSlot,
-  slotB: TimeSlot,
-): Result<
-  { readonly overlap: TimeSlot; readonly remainder: TimeSlot[] },
-  "SLOTS_NOT_INTERSECT"
-> => {
-  const isIntersect = Temporal.PlainTime.compare(slotB.start, slotA.end) === -1;
-  const isInside = Temporal.PlainTime.compare(slotA.end, slotB.end) === 1;
-
-  if (!isIntersect) return { ok: false, error: "SLOTS_NOT_INTERSECT" };
-
-  const overlap: TimeSlot = {
-    id: crypto.randomUUID(),
-    name: `Overlap of ${slotA.id} and ${slotB.id}`,
-    start: slotB.start,
-    end:
-      Temporal.PlainTime.compare(slotA.end, slotB.end) === 1
-        ? slotB.end
-        : slotA.end,
-  };
-
-  return {
-    ok: true,
-    data: {
-      overlap: overlap,
-      remainder: [
-        {
-          ...slotA,
-          end: slotB.start,
-        },
-        {
-          ...slotB,
-          start: isInside ? slotB.end : slotA.end,
-        },
-      ],
-    },
-  };
-};
 
 const resolveConflictsByWeight = (
   timeslot: TimeSlot,
@@ -83,17 +43,18 @@ export const resolveSlotTaskConflicts = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
   tasks: Event[],
+  busyEvents: Event[],
 ): TasksSchedule => {
   const assignedTasksA = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotA.id),
-    [],
+    busyEvents,
     timeslotA.start,
     timeslotA.end,
   );
   const assignedTasksB = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotB.id),
-    [],
-    timeslotB.start,
+    busyEvents,
+    timeslotA.start,
     timeslotB.end,
   );
 

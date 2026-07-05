@@ -1,40 +1,37 @@
+import { Temporal } from "@js-temporal/polyfill";
 import type { Event, TimeSlot } from "../core/types";
-import {
-  resolveSlotTaskConflicts,
-  splitOverlappingSlots,
-} from "./resolveSlotTaskConflicts";
+import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
 import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
 
 //per day palang ito
 export const scheduleTasks = (
+  queuedTasks: Event[],
+  busyEvents: Event[],
   timeSlots: TimeSlot[],
-  allTasks: Event[],
-  usedSlots: TimeSlot[] = [],
   sortedTasks: TasksSchedule[] = [],
 ): TasksSchedule[] => {
-  const [slot, nextSlot, ...slots] = timeSlots;
-  if (!slot) return sortedTasks;
+  const [currentSlot, nextSlot, ...slots] = timeSlots;
+  if (!currentSlot) return sortedTasks;
 
-  const tasks = allTasks.filter((t) => t.slotId === slot.id);
-  const prevTask = sortedTasks[sortedTasks.length - 1];
+  const tasks = queuedTasks.filter((t) => t.slotId === currentSlot.id);
 
-  const isOverlapping = nextSlot
-    ? splitOverlappingSlots(slot, nextSlot).ok
-    : false;
+  const areSlotsOverlapping =
+    nextSlot !== undefined &&
+    Temporal.PlainTime.compare(nextSlot.start, currentSlot.end) === -1;
 
-  const sorted = isOverlapping
-    ? resolveSlotTaskConflicts(slot, nextSlot!, allTasks)
+  const sorted = areSlotsOverlapping
+    ? resolveSlotTaskConflicts(currentSlot, nextSlot, queuedTasks, busyEvents)
     : scheduleTasksInSlot(
         tasks,
-        prevTask?.sortedTasks ?? [], // why did i set this as events when its supposed to be tasks?
-        slot.start,
-        slot.end,
+        busyEvents,
+        currentSlot.start,
+        currentSlot.end,
       );
 
   return scheduleTasks(
+    queuedTasks,
+    [...busyEvents, ...sorted.sortedTasks],
     [...(nextSlot ? [nextSlot] : []), ...slots],
-    allTasks,
-    [{ ...slot }, ...usedSlots],
-    [...sortedTasks, { ...sorted }],
+    [...sortedTasks, sorted],
   );
 };

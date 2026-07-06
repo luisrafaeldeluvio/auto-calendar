@@ -1,8 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 
 export type Result<T, E = string> =
-  | { ok: true; data: T }
-  | { ok: false; error: E };
+  { ok: true; data: T } | { ok: false; error: E };
 
 export type SlotError = "INVALID_RANGE" | "TIME_EXCEEDED";
 

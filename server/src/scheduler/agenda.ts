@@ -1,29 +1,18 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, Result, TimeSlot } from "../core/types";
+import type { Event, TimeSlot } from "../core/types";
 import { scheduleTasks } from "./scheduleTasks";
 import type { TasksSchedule } from "./scheduleTasksInSlot";
 
-interface Interval {
-  start: Temporal.PlainDate;
-  end: Temporal.PlainDate;
-}
-export const interval = (
+export const eachDayOfInterval = (
   start: Temporal.PlainDate,
   end: Temporal.PlainDate,
-): Result<Interval, "INVALID_DATE_RANGE"> => {
-  if (Temporal.PlainDate.compare(start, end) > 0)
-    return { ok: false, error: "INVALID_DATE_RANGE" };
-  return {
-    ok: true,
-    data: { start, end },
-  };
-};
-
-export const eachDayOfInterval = ({ start, end }: Interval) => {
+): Temporal.PlainDate[] => {
   const totalDays = start.until(end, { largestUnit: "day" }).days;
 
-  return Array.from({ length: totalDays + 1 }, (_, i) =>
-    start.add({ days: i }),
+  if (totalDays < 0) return [];
+
+  return Array.from({ length: totalDays + 1 }, (_, index) =>
+    start.add({ days: index }),
   );
 };
 
@@ -32,14 +21,8 @@ export const agenda = (
   end: Temporal.PlainDate,
   allTasks: Event[],
   timeSlots: TimeSlot[],
-): Result<TasksSchedule, "INVALID_DATE_RANGE"> => {
-  const agendaInterval = interval(start, end);
-  if (!agendaInterval.ok) return agendaInterval;
-
-  const dates = eachDayOfInterval(agendaInterval.data).map((d) => d);
-  console.log(dates);
-  return { ok: true, data: scheduleTasksInAgenda(dates, allTasks, timeSlots) };
-};
+): TasksSchedule =>
+  scheduleTasksInAgenda(eachDayOfInterval(start, end), allTasks, timeSlots);
 
 const scheduleTasksInAgenda = (
   dates: Temporal.PlainDate[],
@@ -54,6 +37,7 @@ const scheduleTasksInAgenda = (
       queue: allTasks,
     };
 
+  // turn this into a map
   const tasksInDate = allTasks.filter((task) => {
     return (
       Temporal.PlainDateTime.compare(task.startDate ?? {}, date) === -1 ||
@@ -61,8 +45,9 @@ const scheduleTasksInAgenda = (
     );
   });
 
-  const scheduleTasksInDate = scheduleTasks(timeSlots, tasksInDate);
+  const scheduleTasksInDate = scheduleTasks([], tasksInDate, timeSlots);
 
+  // SEPERATION OF CONCERN I SHOULD NOT FLATTEN IT!!!!
   const flatten = scheduleTasksInDate
     .reduce<Event[]>((acc, curr) => [...acc, ...curr.sortedTasks], [])
     .map((t) => {
@@ -74,8 +59,8 @@ const scheduleTasksInAgenda = (
       };
     });
 
-  //     flatten in a key-value pair (record)
-  //     like date: flatten.
+  //      in a key-value pair (record)
+  //     like date: flatten. (map)
 
   const queue = allTasks.filter(
     (task) => !flatten.some((task2) => task.id === task2.id),
@@ -93,9 +78,8 @@ const scheduleTasksInAgenda = (
 // - [ ] improve namings
 // - [ ] write proper test
 // - [ ] write services funtion
-// - [ ] use Temporal instead of date-fns
-//      - [ ] change duration to use ms aswell
-// - [ ] I was thinking of merging the Event and Task type and just adding a "type" item
+// - [x] use Temporal instead of date-fns
+// - [x] I was thinking of merging the Event and Task type and just adding a "type" item
 
 // yehh maybe not, let's focus on getting results first before all of this
 // - [ ] i should fix the components and hooks for the /client first and get it to work

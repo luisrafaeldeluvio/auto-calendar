@@ -79,36 +79,3 @@ const taskFactory = (partial: Partial<Event> = {}): Event => {
     ...partial,
   };
 };
-
-const busyEvents: Event<Temporal.PlainDateTime>[] = [
-  taskFactory({
-    id: "3",
-    name: "Task3",
-    start: Temporal.PlainTime.from({ hour: 1, minute: 0 }), // 60 mins
-    end: Temporal.PlainTime.from({ hour: 2, minute: 0 }), // 120 mins
-    isBusy: true,
-    duration: Temporal.Duration.from({ minutes: 60 }),
-    slotId: "1",
-  }),
-];
-const queuedTasks: Event[] = [
-  taskFactory({
-    id: "1",
-    duration: Temporal.Duration.from({ minutes: 60 }),
-    slotId: "1",
-  }),
-  taskFactory({
-    id: "2",
-    duration: Temporal.Duration.from({ minutes: 60 }),
-    slotId: "1",
-  }),
-];
-
-const result = scheduleTasksInSlot(
-  queuedTasks,
-  busyEvents,
-  Temporal.PlainTime.from({ hour: 0, minute: 0 }),
-  Temporal.PlainTime.from({ hour: 1, minute: 0 }), // 180 mins
-);
-
-console.log(result)

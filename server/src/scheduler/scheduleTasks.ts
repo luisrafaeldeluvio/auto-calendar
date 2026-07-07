@@ -1,15 +1,15 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TimeSlot } from "../core/types";
+import type { Event, TasksSchedule, TimeSlot } from "../core/types";
 import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
-import { scheduleTasksInSlot, type TasksSchedule } from "./scheduleTasksInSlot";
+import { scheduleTasksInSlot, } from "./scheduleTasksInSlot";
 
 //per day palang ito
 export const scheduleTasks = (
   queuedTasks: Event[],
-  busyEvents: Event[],
+  busyEvents: Event<Temporal.PlainDateTime>[],
   timeSlots: TimeSlot[],
-  sortedTasks: TasksSchedule[] = [],
-): TasksSchedule[] => {
+  sortedTasks: TasksSchedule<Temporal.PlainTime>[] = [],
+): TasksSchedule<Temporal.PlainTime>[] => {
   const [currentSlot, nextSlot, ...slots] = timeSlots;
   if (!currentSlot) return sortedTasks;
 

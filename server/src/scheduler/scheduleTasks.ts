@@ -1,11 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { Event, TasksSchedule, TimeSlot } from "../core/types";
 import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
-import { scheduleTasksInSlot, } from "./scheduleTasksInSlot";
+import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 
 //per day palang ito
 // Though while this is per day, it can also be considered as
-// scheduling multiple slots within a day. So instead of 
+// scheduling multiple slots within a day. So instead of
 // recalculating the whole day, we have the option to only
 // calculate a later part of the day.
 export const scheduleTasks = (
@@ -13,9 +13,9 @@ export const scheduleTasks = (
   busyEvents: Event<Temporal.PlainDateTime>[],
   timeSlots: TimeSlot[],
   // Move to inner recursion.
-  sortedTasks: TasksSchedule<Temporal.PlainTime>[] = [],
-  // Hardcode Date or make it optional?
-): TasksSchedule<Temporal.PlainTime>[] => {
+  sortedTasks: TasksSchedule<Temporal.PlainDateTime>[] = [],
+  date: Temporal.PlainDate,
+): TasksSchedule<Temporal.PlainDateTime>[] => {
   const [currentSlot, nextSlot, ...slots] = timeSlots;
   if (!currentSlot) return sortedTasks;
   // I should mvoe this outside the recursion and then maybe turn the Id's
@@ -35,12 +35,17 @@ export const scheduleTasks = (
         currentSlot.end,
       );
 
+  const parsedSortedTasks = sorted.sortedTasks.map((ev) => ({
+    ...ev,
+    start: date.toPlainDateTime(ev.start),
+    end: date.toPlainDateTime(ev.end),
+  }));
+
   return scheduleTasks(
     queuedTasks,
-    [...busyEvents, ...sorted.sortedTasks],
-    // Error here because busyEvent's interval is Temporal.PlainDateTime
-    // while sorted.sortedTasks still uses Temporal.PlainTime
+    [...busyEvents, ...parsedSortedTasks],
     [...(nextSlot ? [nextSlot] : []), ...slots],
-    [...sortedTasks, sorted],
+    [...sortedTasks, { sortedTasks: parsedSortedTasks, queue: sorted.queue }],
+    date
   );
 };

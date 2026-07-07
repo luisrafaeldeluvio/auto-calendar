@@ -1,14 +1,9 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event } from "../core/types";
-
-export interface TasksSchedule {
-  sortedTasks: Event[];
-  queue: Event[];
-}
+import type { Event, TasksSchedule } from "../core/types";
 
 export const scheduleTasksInSlot = (
-  queuedTasks: readonly Event[],
-  activeEvents: readonly Event[],
+  queuedTasks: Event[],
+  activeEvents: Event<Temporal.PlainDateTime>[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
 ) => {
@@ -16,10 +11,10 @@ export const scheduleTasksInSlot = (
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
 
   const schedule = (
-    tasksToProcess: readonly Event[],
+    tasksToProcess: Event[],
     currentTime: Temporal.PlainTime,
-    sortedTasks: Event[],
-  ): TasksSchedule => {
+    sortedTasks: Event<Temporal.PlainTime>[],
+  ): TasksSchedule<Temporal.PlainTime> => {
     const [task, ...remainingTasks] = tasksToProcess;
     if (!task) return { sortedTasks: sortedTasks, queue: [] };
 
@@ -28,7 +23,7 @@ export const scheduleTasksInSlot = (
       task.duration ?? { minutes: 0 },
     );
 
-    const overlappingEvent: Event | undefined = busyEvents.find(
+    const overlappingEvent: Event<Temporal.PlainDateTime> | undefined = busyEvents.find(
       (e) =>
         e.start &&
         e.end &&
@@ -37,7 +32,7 @@ export const scheduleTasksInSlot = (
     );
 
     if (overlappingEvent && overlappingEvent.end)
-      return schedule(tasksToProcess, overlappingEvent.end, [...sortedTasks]);
+      return schedule(tasksToProcess, Temporal.PlainTime.from(overlappingEvent.end), [...sortedTasks]);
 
     const isSlotFull =
       Temporal.PlainTime.compare(taskEndTime, slotEndTime) === 1;
@@ -49,7 +44,7 @@ export const scheduleTasksInSlot = (
       };
     }
 
-    const newTask: Event = {
+    const newTask: Event<Temporal.PlainTime> = {
       ...task,
       start: taskStartTime,
       end: taskEndTime,
@@ -85,7 +80,7 @@ const taskFactory = (partial: Partial<Event> = {}): Event => {
   };
 };
 
-const busyEvents: Event[] = [
+const busyEvents: Event<Temporal.PlainDateTime>[] = [
   taskFactory({
     id: "3",
     name: "Task3",
@@ -113,7 +108,7 @@ const result = scheduleTasksInSlot(
   queuedTasks,
   busyEvents,
   Temporal.PlainTime.from({ hour: 0, minute: 0 }),
-  Temporal.PlainTime.from({ hour: 3, minute: 0 }), // 180 mins
+  Temporal.PlainTime.from({ hour: 1, minute: 0 }), // 180 mins
 );
 
-console.log(result);
+console.log(result)

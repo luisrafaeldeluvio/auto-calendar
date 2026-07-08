@@ -1,7 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TimeSlot } from "../core/types";
+import type { Event, TasksSchedule, TimeSlot } from "../core/types";
 import { scheduleTasks } from "./scheduleTasks";
-import type { TasksSchedule } from "./scheduleTasksInSlot";
 
 export const eachDayOfInterval = (
   start: Temporal.PlainDate,
@@ -20,56 +19,60 @@ export const agenda = (
   start: Temporal.PlainDate,
   end: Temporal.PlainDate,
   allTasks: Event[],
+  busyEvents: Event<Temporal.PlainDateTime>[],
   timeSlots: TimeSlot[],
-): TasksSchedule =>
-  scheduleTasksInAgenda(eachDayOfInterval(start, end), allTasks, timeSlots);
-
-const scheduleTasksInAgenda = (
-  dates: Temporal.PlainDate[],
-  allTasks: Event[],
-  timeSlots: TimeSlot[],
-  scheduled: Event[] = [],
-): TasksSchedule => {
-  const [date, ...rest] = dates;
-  if (!date)
-    return {
-      sortedTasks: scheduled ?? [],
-      queue: allTasks,
-    };
-
-  // turn this into a map
-  const tasksInDate = allTasks.filter((task) => {
-    return (
-      Temporal.PlainDateTime.compare(task.startDate ?? {}, date) === -1 ||
-      (task.startDate?.equals(date) && task.dueDate?.equals(date))
-    );
-  });
-
-  const scheduleTasksInDate = scheduleTasks([], tasksInDate, timeSlots);
-
-  // SEPERATION OF CONCERN I SHOULD NOT FLATTEN IT!!!!
-  const flatten = scheduleTasksInDate
-    .reduce<Event[]>((acc, curr) => [...acc, ...curr.sortedTasks], [])
-    .map((t) => {
-      // i should probably turn this into a separate function
+): TasksSchedule<Temporal.PlainDateTime> => {
+  const scheduleTasksInAgenda = (
+    dates: Temporal.PlainDate[],
+    allTasks: Event[],
+    timeSlots: TimeSlot[],
+    scheduled: Event<Temporal.PlainDateTime>[] = [],
+  ): TasksSchedule<Temporal.PlainDateTime> => {
+    const [date, ...rest] = dates;
+    if (!date)
       return {
-        ...t,
-        start: date.toPlainDateTime(t.start ?? {}),
-        end: date.toPlainDateTime(t.end ?? {}),
+        sortedTasks: scheduled ?? [],
+        queue: allTasks,
       };
+
+    // turn this into a map
+    const tasksInDate = allTasks.filter((task) => {
+      return (
+        Temporal.PlainDateTime.compare(task.startDate ?? {}, date) === -1 ||
+        (task.startDate?.equals(date) && task.dueDate?.equals(date))
+      );
     });
 
-  //      in a key-value pair (record)
-  //     like date: flatten. (map)
+    const scheduleTasksInDate = scheduleTasks(
+      tasksInDate,
+      busyEvents,
+      timeSlots,
+      date,
+    );
 
-  const queue = allTasks.filter(
-    (task) => !flatten.some((task2) => task.id === task2.id),
+    // SEPERATION OF CONCERN I SHOULD NOT FLATTEN IT!!!!
+    const flatten = scheduleTasksInDate.reduce<Event<Temporal.PlainDateTime>[]>(
+      (acc, curr) => [...acc, ...curr.sortedTasks],
+      [],
+    );
+
+    //      in a key-value pair (record)
+    //     like date: flatten. (map)
+
+    const queue = allTasks.filter(
+      (task) => !flatten.some((task2) => task.id === task2.id),
+    );
+
+    return scheduleTasksInAgenda(rest, queue, timeSlots, [
+      ...scheduled,
+      ...flatten,
+    ]);
+  };
+  return scheduleTasksInAgenda(
+    eachDayOfInterval(start, end),
+    allTasks,
+    timeSlots,
   );
-
-  return scheduleTasksInAgenda(rest, queue, timeSlots, [
-    ...scheduled,
-    ...flatten, // because of the map
-  ]);
 };
 
 // okay i think this is it! we just got to optimize it now!

@@ -1,31 +1,25 @@
-import type { Result, AutoTask } from "../core/types";
+import type { Event, Result } from "../core/types";
+import { Temporal } from "@js-temporal/polyfill";
+import { insertEvent } from "../db/db";
 
-type AutoTaskError =
-  | "INVALID_START_DATE"
-  | "INVALID_DUE_DATE"
-  | "INVALID_DATE_RANGE";
-
-export const createAutoTask = (
-  autoTask: Readonly<
-    Omit<AutoTask, "id" | "isBusy" | "isDone"> &
-      Partial<Pick<AutoTask, "isBusy">>
-  >,
-): Result<AutoTask, AutoTaskError> => {
-  if (Number.isNaN(autoTask.startDate))
-    return { ok: false, error: "INVALID_START_DATE" };
-
-  if (Number.isNaN(autoTask.dueDate))
-    return { ok: false, error: "INVALID_DUE_DATE" };
-
-  if (autoTask.startDate > autoTask.dueDate)
+export const createTask = (
+  event: Omit<Event, "id" | "isDone" | "isSorted" | "isSortable">,
+): Result<Event, "INVALID_DATE_RANGE"> => {
+  if (
+    event.startDate &&
+    event.dueDate &&
+    Temporal.PlainDateTime.compare(event.startDate, event.dueDate) === 1
+  )
     return { ok: false, error: "INVALID_DATE_RANGE" };
 
-  const newAutoTask = {
-    ...autoTask,
+  const newTask: Event = {
+    ...event,
     id: crypto.randomUUID(),
-    isBusy: autoTask.isBusy ?? true,
     isDone: false,
+    isSorted: false,
+    isSortable: true,
   };
 
-  return { ok: true, data: newAutoTask };
+  insertEvent(newTask);
+  return { ok: true, data: newTask };
 };

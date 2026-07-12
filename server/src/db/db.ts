@@ -85,4 +85,36 @@ export const insertSlot = (s: TimeSlot) => {
 };
 
 export const getSlotById = (id: string) =>
-  db.prepare(`SELECT * FROM events WHERE id = ? LIMIT 1`).get(id) as Event;
+  db.prepare(`SELECT * FROM events WHERE id = ? LIMIT 1`).get(id) as TimeSlot;
+
+export const getAllSlots = () =>
+  db.prepare(`SELECT * FROM slots`).get() as TimeSlot;
+
+interface GetSlotOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "ASC" | "DESC";
+}
+
+export const getSlot = (opt: GetSlotOptions) =>
+  db
+    .prepare(
+      `SELECT * FROM slots
+        ORDER BY $orderBy $order LIMIT $limit
+      OFFSET $offset ROWS ONLY;`,
+    )
+    .all({
+      orderBy: opt.orderBy ?? "id",
+      order: opt.order ?? "ASC",
+      limit: opt.limit ?? "9223372036854775807",
+      offset: opt.offset ?? 0,
+    }) as TimeSlot[]
+
+// TODO:
+// - [ ] create a "bulk"/"list" getter for both
+// - [ ] refactor /services/time-slots
+// -     refactor /client/.../components
+//       - [ ] createTasks
+//       - [ ] CreateTimeSlots
+// - [ ] figure out ease of setup for a local host for normal user vs just a normal localhost

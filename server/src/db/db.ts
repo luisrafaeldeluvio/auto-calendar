@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { type Event, type TimeSlot } from "../core/types";
 import { Temporal } from "@js-temporal/polyfill";
+import { createTask } from "../services/tasks";
 
 export const db = new Database("events.sqlite", { create: true, strict: true });
 
@@ -74,6 +75,37 @@ export const getEventById = (id: string) => {
   return row.get({ id: id }) as Event;
 };
 
+interface GetEventOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "ASC" | "DESC";
+  filter?: string;
+}
+
+/**
+* @param opt - event query options:
+*  - limit: ammount of rows to return, default is the max value.
+*  - offset:
+*  - orderBy: 
+*  - order:
+*  - filter: additional SQL query to the WHERE predicate
+*/
+export const getEvent = (opt: GetEventOptions) =>
+  db
+    .prepare(
+      `SELECT * FROM slots $filter 
+        ORDER BY $orderBy $order LIMIT $limit
+      OFFSET $offset ROWS ONLY;`,
+    )
+    .all({
+      filter: opt.filter ?? null,
+      orderBy: opt.orderBy ?? "id",
+      order: opt.order ?? "ASC",
+      limit: opt.limit ?? "9223372036854775807",
+      offset: opt.offset ?? 0,
+    }) as TimeSlot[];
+
 export const insertSlot = (s: TimeSlot) => {
   db.prepare(`INSERT INTO slots VALUES (?, ?, ?, ?)`).run(
     s.id,
@@ -109,7 +141,7 @@ export const getSlot = (opt: GetSlotOptions) =>
       order: opt.order ?? "ASC",
       limit: opt.limit ?? "9223372036854775807",
       offset: opt.offset ?? 0,
-    }) as TimeSlot[]
+    }) as TimeSlot[];
 
 // TODO:
 // - [ ] create a "bulk"/"list" getter for both

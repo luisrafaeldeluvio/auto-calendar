@@ -1,90 +1,89 @@
-import { TOTAL_TIME } from "../core/constants";
 import type { Result, TimeSlot, SlotError } from "../core/types";
+import { db, insertSlot } from "../db/db";
 
-interface MutationData {
-  slots: TimeSlot[];
-  slot: TimeSlot;
-}
-
-export const getSlot = (
-  slots: readonly TimeSlot[],
-  id: string,
-): TimeSlot | undefined => {
-  return slots.find((s) => s.id === id);
-};
+// export const getSlot = (
+//   slots: readonly TimeSlot[],
+//   id: string,
+// ): TimeSlot | undefined => {
+//   return slots.find((s) => s.id === id);
+// };
 
 export const addSlot = (
-  slots: readonly TimeSlot[],
   slot: Readonly<Omit<TimeSlot, "id">>,
-): Result<MutationData, SlotError> => {
-  const error = validateSlot([...slots], { ...slot });
-  if (error) return { ok: false, error: error };
-
-  const newSlot = { ...slot, id: crypto.randomUUID() };
-  const newSlots = [...slots, newSlot];
-
-  return { ok: true, data: { slots: newSlots, slot: newSlot } };
+): Result<string, SlotError> => {
+  const checkSlot = validateSlot(slot);
+  if (!checkSlot.ok) return { ok: false, error: checkSlot.error };
+  
+  const newSlot: TimeSlot = { ...slot, id: crypto.randomUUID() };
+  return { ok: true, data: insertSlot(newSlot) };
 };
 
-export const removeSlot = (
-  slots: readonly TimeSlot[],
-  id: string,
-): Result<MutationData, "NOT_FOUND"> => {
-  const slot = slots.find((s) => id === s.id);
-  if (!slot) return { ok: false, error: "NOT_FOUND" };
+// export const removeSlot = (
+//   slots: readonly TimeSlot[],
+//   id: string,
+// ): Result<MutationData, "NOT_FOUND"> => {
+//   const slot = slots.find((s) => id === s.id);
+//   if (!slot) return { ok: false, error: "NOT_FOUND" };
 
-  const newSlots = slots.filter((s) => s.id !== id);
+//   const newSlots = slots.filter((s) => s.id !== id);
 
-  return { ok: true, data: { slots: newSlots, slot: slot } };
-};
+//   return { ok: true, data: { slots: newSlots, slot: slot } };
+// };
 
-export const updateSlot = (
-  slots: readonly TimeSlot[],
-  id: string,
-  updates: Readonly<Partial<Omit<TimeSlot, "id">>>,
-): Result<MutationData, "NOT_FOUND" | SlotError> => {
-  const existingSlot = slots.find((slot) => id === slot.id);
-  if (!existingSlot) return { ok: false, error: "NOT_FOUND" };
+// export const updateSlot = (
+//   slots: readonly TimeSlot[],
+//   id: string,
+//   updates: Readonly<Partial<Omit<TimeSlot, "id">>>,
+// ): Result<MutationData, "NOT_FOUND" | SlotError> => {
+//   const existingSlot = slots.find((slot) => id === slot.id);
+//   if (!existingSlot) return { ok: false, error: "NOT_FOUND" };
 
-  const start = updates.start ?? existingSlot.start;
-  const end = updates.end ?? existingSlot.end;
+//   const start = updates.start ?? existingSlot.start;
+//   const end = updates.end ?? existingSlot.end;
 
-  const error = validateSlot(
-    [...slots],
-    { start: start, end: end },
-    existingSlot.id,
-  );
-  if (error) return { ok: false, error: error };
+//   const error = validateSlot(
+//     [...slots],
+//     { start: start, end: end },
+//     existingSlot.id,
+//   );
+//   if (error) return { ok: false, error: error };
 
-  const updatedSlot = { ...existingSlot, ...updates };
-  const newSlots = slots.map((slot) => (slot.id === id ? updatedSlot : slot));
+//   const updatedSlot = { ...existingSlot, ...updates };
+//   const newSlots = slots.map((slot) => (slot.id === id ? updatedSlot : slot));
 
-  return { ok: true, data: { slots: newSlots, slot: updatedSlot } };
-};
+//   return { ok: true, data: { slots: newSlots, slot: updatedSlot } };
+// };
 
 /**
  * Validates a slot against existing slots for range boundaries and duration
  *
- * @param slots - The collection of slots to check against
  * @param slot - The start and end times of the slot being validated
  * @param ignoreId - (Optional) An ID to ignore during checks
  *
  * @returns An error type or null
  */
 const validateSlot = (
-  slots: readonly TimeSlot[],
   slot: Readonly<Omit<TimeSlot, "id" | "name">>,
   ignoreId?: string,
-): SlotError | null => {
-  const filteredSlots = slots.filter((s) => s.id !== ignoreId);
-  const totalSlotTime = filteredSlots.reduce(
-    (t, s) => t + (s.end - s.start),
-    0,
-  );
+): Result<null, SlotError> => {
+  const midnight = Temporal.PlainTime.from("00:00:00");
+  const filteredSlots = db
+    .prepare(`SELECT * FROM slots WHERE id NOT ${ignoreId}`)
+    .all() as TimeSlot[];
+  const totalSlotTime = filteredSlots.reduce((t, s) => {
+    const start = midnight.until(s.start).total({ unit: "minute" });
+    const end = midnight.until(s.start).total({ unit: "minute" });
+    return t + (end - start);
+  }, 0);
 
-  if (slot.start >= slot.end) return "INVALID_RANGE";
-  if (totalSlotTime + (slot.end - slot.start) > TOTAL_TIME)
-    return "TIME_EXCEEDED";
+  if (slot.start >= slot.end) return { ok: false, error: "INVALID_RANGE" };
+  if (
+    totalSlotTime +
+      (midnight.until(slot.start).total({ unit: "minute" }) -
+        midnight.until(slot.start).total({ unit: "minute" })) >
+    1440
+  )
+    return { ok: false, error: "TIME_EXCEEDED" };
 
-  return null;
+  return { ok: true, data: null };
 };

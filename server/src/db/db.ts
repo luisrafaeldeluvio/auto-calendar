@@ -20,7 +20,7 @@ db.query(
       is_sorted INTEGER CHECK (is_sorted IN (0, 1)) NOT NULL,
       duration TEXT, -- UNIX Timestamp
       weight INTEGER CHECK (weight IN (1, 2, 3, 4)) NOT NULL,
-      slotId TEXT NOT NULL,
+      slot_id TEXT NOT NULL,
       buffer_before TEXT, -- UNIX Timestamp 
       buffer_after TEXT, -- UNIX Timestamp
       start_date TEXT, -- ISO-8601
@@ -117,8 +117,8 @@ export const getEvent = (opt: GetEventOptions) => {
 
   return db.prepare(sql).all({
     limit: opt.limit ?? 9223372036854775807n,
-      offset: opt.offset ?? 0,
-    }) as TimeSlot[];
+    offset: opt.offset ?? 0,
+  }) as TimeSlot[];
 };
 
 export const insertSlot = (s: TimeSlot) => {

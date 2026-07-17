@@ -1,5 +1,5 @@
 import type { Result, TimeSlot, SlotError } from "../core/types";
-import { db, insertSlot } from "../db/db";
+import { db, getSlot, insertSlot } from "../db/db";
 
 // export const getSlot = (
 //   slots: readonly TimeSlot[],
@@ -13,7 +13,7 @@ export const addSlot = (
 ): Result<string, SlotError> => {
   const checkSlot = validateSlot(slot);
   if (!checkSlot.ok) return { ok: false, error: checkSlot.error };
-  
+
   const newSlot: TimeSlot = { ...slot, id: crypto.randomUUID() };
   return { ok: true, data: insertSlot(newSlot) };
 };
@@ -67,9 +67,7 @@ const validateSlot = (
   ignoreId?: string,
 ): Result<null, SlotError> => {
   const midnight = Temporal.PlainTime.from("00:00:00");
-  const filteredSlots = db
-    .prepare(`SELECT * FROM slots WHERE id NOT ${ignoreId}`)
-    .all() as TimeSlot[];
+  const filteredSlots = getSlot({ filter: `id NOT ${ignoreId}` });
   const totalSlotTime = filteredSlots.reduce((t, s) => {
     const start = midnight.until(s.start).total({ unit: "minute" });
     const end = midnight.until(s.start).total({ unit: "minute" });

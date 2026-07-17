@@ -84,17 +84,17 @@ interface GetEventOptions {
 }
 
 /**
-* @param opt - event query options:
-*  - limit: ammount of rows to return, default is the max value.
-*  - offset:
-*  - orderBy: 
-*  - order:
-*  - filter: additional SQL query to the WHERE predicate
-*/
+ * @param opt - event query options:
+ *  - limit: ammount of rows to return, default is the max value.
+ *  - offset:
+ *  - orderBy:
+ *  - order:
+ *  - filter: additional SQL query to the WHERE predicate
+ */
 export const getEvent = (opt: GetEventOptions) =>
   db
     .prepare(
-      `SELECT * FROM slots $filter 
+      `SELECT * FROM slots WHERE $filter 
         ORDER BY $orderBy $order LIMIT $limit
       OFFSET $offset ROWS ONLY;`,
     )
@@ -127,16 +127,18 @@ interface GetSlotOptions {
   offset?: number;
   orderBy?: string;
   order?: "ASC" | "DESC";
+  filter?: string;
 }
 
 export const getSlot = (opt: GetSlotOptions) =>
   db
     .prepare(
-      `SELECT * FROM slots
+      `SELECT * FROM slots WHERE $filter
         ORDER BY $orderBy $order LIMIT $limit
       OFFSET $offset ROWS ONLY;`,
     )
     .all({
+      filter: opt.filter ?? null,
       orderBy: opt.orderBy ?? "id",
       order: opt.order ?? "ASC",
       limit: opt.limit ?? "9223372036854775807",
@@ -144,7 +146,7 @@ export const getSlot = (opt: GetSlotOptions) =>
     }) as TimeSlot[];
 
 // TODO:
-// - [ ] create a "bulk"/"list" getter for both
+// - [x] create a "bulk"/"list" getter for both
 // - [ ] refactor /services/time-slots
 // -     refactor /client/.../components
 //       - [ ] createTasks

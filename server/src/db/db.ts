@@ -1,7 +1,6 @@
 import { Database } from "bun:sqlite";
 import { type Event, type TimeSlot } from "../core/types";
 import { Temporal } from "@js-temporal/polyfill";
-import { createTask } from "../services/tasks";
 
 export const db = new Database("events.sqlite", { create: true, strict: true });
 
@@ -118,7 +117,7 @@ export const getEvent = (opt: GetEventOptions) => {
   return db.prepare(sql).all({
     limit: opt.limit ?? 9223372036854775807n,
     offset: opt.offset ?? 0,
-  }) as TimeSlot[];
+  }) as Event[];
 };
 
 export const insertSlot = (s: TimeSlot) => {
@@ -132,7 +131,7 @@ export const insertSlot = (s: TimeSlot) => {
 };
 
 export const getSlotById = (id: string) =>
-  db.prepare(`SELECT * FROM events WHERE id = ? LIMIT 1`).get(id) as TimeSlot;
+  db.prepare(`SELECT * FROM slots WHERE id = ? LIMIT 1`).get(id) as TimeSlot;
 
 export const getAllSlots = () =>
   db.prepare(`SELECT * FROM slots`).get() as TimeSlot;
@@ -145,20 +144,18 @@ interface GetSlotOptions {
   filter?: string;
 }
 
-export const getSlot = (opt: GetSlotOptions) =>
-  db
-    .prepare(
-      `SELECT * FROM slots WHERE $filter
-        ORDER BY $orderBy $order LIMIT $limit
-      OFFSET $offset ROWS ONLY;`,
-    )
-    .all({
-      filter: opt.filter ?? null,
-      orderBy: opt.orderBy ?? "id",
-      order: opt.order ?? "ASC",
-      limit: opt.limit ?? "9223372036854775807",
-      offset: opt.offset ?? 0,
-    }) as TimeSlot[];
+export const getSlot = (opt: GetSlotOptions) => {
+  const sql = `
+    SELECT * FROM slots ${opt.filter ? `WHERE ${opt.filter}` : ""} 
+    ORDER BY ${opt.orderBy ?? "id"} ${opt.order ?? "ASC"} LIMIT $limit
+    OFFSET $offset;
+  `;
+
+  return db.prepare(sql).all({
+    limit: opt.limit ?? 9223372036854775807n,
+    offset: opt.offset ?? 0,
+  }) as TimeSlot[];
+};
 
 // TODO:
 // - [x] create a "bulk"/"list" getter for both
@@ -167,26 +164,3 @@ export const getSlot = (opt: GetSlotOptions) =>
 //       - [ ] createTasks
 //       - [ ] CreateTimeSlots
 // - [ ] figure out ease of setup for a local host for normal user vs just a normal localhost
-
-// console.log(insertEvent({
-//   id: crypto.randomUUID(),
-//   name: "Task1",
-//   notes: "",
-//   type: "task",
-//   start: null,
-//   end: null,
-//   isBusy: false,
-//   isDone: false,
-//   isSortable: true,
-//   isSorted: false,
-//   duration: Temporal.Duration.from({hours: 2, minutes: 30}),
-//   weight: 1,
-//   slotId: crypto.randomUUID(),
-//    buffer: {
-//     before: null,
-//     after: null,
-//    },
-//    startDate: Temporal.Now.plainDateTimeISO(),
-//    dueDate: Temporal.Now.plainDateTimeISO()
-
-// }))

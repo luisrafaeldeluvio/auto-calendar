@@ -134,7 +134,7 @@ export const getSlotById = (id: string) =>
   db.prepare(`SELECT * FROM slots WHERE id = ? LIMIT 1`).get(id) as TimeSlot;
 
 export const getAllSlots = () =>
-  db.prepare(`SELECT * FROM slots`).get() as TimeSlot;
+  db.prepare(`SELECT * FROM slots`).all() as TimeSlot[];
 
 interface GetSlotOptions {
   limit?: number;
@@ -159,7 +159,7 @@ export const getSlot = (opt: GetSlotOptions) => {
 
 // TODO:
 // - [x] create a "bulk"/"list" getter for both
-// - [ ] refactor /services/time-slots
+// - [x] refactor /services/time-slots
 // -     refactor /client/.../components
 //       - [ ] createTasks
 //       - [ ] CreateTimeSlots

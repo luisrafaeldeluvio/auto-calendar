@@ -1,9 +1,7 @@
 import { useRef } from "react";
-import { addAutoTask, getAllTimeSlot } from "../db/helpers";
-import { type TimeSlot, type Weight } from "../../../server/src/types";
-import { createAutoTask } from "../../server/src/engine/tasks";
-import { getTime } from "date-fns";
-import { useLiveQuery } from "dexie-react-hooks";
+import {getAllSlots} from "../../../server/src/db/db"
+
+import { type TimeSlot } from "../../../server/src/core/types";
 
 const durationOptions = [
   {
@@ -75,37 +73,37 @@ const weightOptions = [
   },
 ];
 
-const createTaskFromForm = (data: FormData) => {
-  const task = createAutoTask({
-    name: String(data.get("name")),
-    notes: String(data.get("notes") ?? ""),
+// const createTaskFromForm = (data: FormData) => {
+//   const task = createAutoTask({
+//     name: String(data.get("name")),
+//     notes: String(data.get("notes") ?? ""),
 
-    isBusy: true,
+//     isBusy: true,
 
-    duration: Number(data.get("durations")),
-    weight: Number(data.get("weight")) as Weight,
-    slotId: String(data.get("timeslots")),
+//     duration: Number(data.get("durations")),
+//     weight: Number(data.get("weight")) as Weight,
+//     slotId: String(data.get("timeslots")),
 
-    buffer: {
-      before: 0,
-      after: 0,
-    },
+//     buffer: {
+//       before: 0,
+//       after: 0,
+//     },
 
-    startDate: getTime(String(data.get("startDate"))),
-    dueDate: getTime(String(data.get("dueDate"))),
-  });
+//     startDate: getTime(String(data.get("startDate"))),
+//     dueDate: getTime(String(data.get("dueDate"))),
+//   });
 
-  if (task.ok) {
-    console.log(task.data);
-    addAutoTask(task.data);
-  } else {
-    console.error(task.error);
-  }
-};
+//   if (task.ok) {
+//     console.log(task.data);
+//     addAutoTask(task.data);
+//   } else {
+//     console.error(task.error);
+//   }
+// };
 
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const slots: TimeSlot[] | undefined = useLiveQuery(() => getAllTimeSlot());
+  const slots: TimeSlot[] | undefined = getAllSlots();
 
   const toggleDialog = () => {
     if (dialogRef.current) {
@@ -118,7 +116,7 @@ export const CreateTaskButton = () => {
       <dialog ref={dialogRef} popover="manual">
         <p>this popped?</p>
         <form
-          action={createTaskFromForm}
+          // action={createTaskFromForm}
           style={{
             display: "flex",
             flexDirection: "column",

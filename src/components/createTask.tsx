@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import {getAllSlots} from "../../../server/src/db/db"
 
-import { type TimeSlot } from "../../../server/src/core/types";
+import { type TimeSlot } from "../types/types";
 
 const durationOptions = [
   {

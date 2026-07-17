@@ -1,8 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule, TimeSlot, Weight } from "../core/types";
+import type { Event, TasksSchedule, TimeSlot } from "../types/types";
 import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
-import { Bench } from "tinybench";
 //per day palang ito
 // Though while this is per day, it can also be considered as
 // scheduling multiple slots within a day. So instead of
@@ -27,7 +26,7 @@ export const scheduleTasks = (
       nextSlot !== undefined &&
       Temporal.PlainTime.compare(nextSlot.start, currentSlot.end) === -1;
 
-    const sorted = areSlotsOverlapping
+    const sorted: TasksSchedule<Temporal.PlainTime> = areSlotsOverlapping
       ? resolveSlotTaskConflicts(currentSlot, nextSlot, queuedTasks, busyEvents)
       : scheduleTasksInSlot(
           tasks,

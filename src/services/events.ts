@@ -1,4 +1,4 @@
-import type { Result, Event } from "../core/types";
+import type { Result, Event } from "../types/types";
 
 type MutationData = { events: Event[]; event: Event };
 

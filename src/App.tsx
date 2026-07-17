@@ -1,7 +1,7 @@
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
-import { agenda } from "../../server/src/scheduler/agenda";
+import { agenda } from "./core/agenda";
 const locales = { "en-US": enUS };
 
 import {CreateTaskButton} from "./components/createTask"
@@ -9,7 +9,7 @@ import {CreateTaskButton} from "./components/createTask"
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import { useState } from "react";
-import type { Event, TimeSlot } from "../../server/src/core/types";
+import type { Event, TimeSlot } from "./types/types";
 import { Temporal } from "@js-temporal/polyfill";
 
 const localizer = dateFnsLocalizer({

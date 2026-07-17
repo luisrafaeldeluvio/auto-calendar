@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule } from "../core/types";
+import type { Event, TasksSchedule } from "../types/types";
 
 export const scheduleTasksInSlot = (
   queuedTasks: Event[],
@@ -56,26 +56,4 @@ export const scheduleTasksInSlot = (
   };
 
   return schedule(sortTasks, slotStartTime, []);
-};
-
-const taskFactory = (partial: Partial<Event> = {}): Event => {
-  return {
-    type: "task",
-    id: crypto.randomUUID(),
-    name: "",
-    notes: "",
-    start: null,
-    end: null,
-    isBusy: true,
-    isDone: false,
-    isSortable: true,
-    isSorted: false,
-    duration: null,
-    weight: 1,
-    slotId: "",
-    buffer: { before: null, after: null },
-    startDate: null,
-    dueDate: null,
-    ...partial,
-  };
 };

@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule, TimeSlot } from "../core/types";
+import type { Event, TasksSchedule, TimeSlot } from "../types/types";
 import { scheduleTasksInSlot, } from "./scheduleTasksInSlot";
 
 const resolveConflictsByWeight = (

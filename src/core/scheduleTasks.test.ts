@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TimeSlot } from "../core/types";
+import type { Event, TimeSlot } from "../types/types";
 import { scheduleTasks } from "./scheduleTasks";
 
 const eventFactory = (
@@ -62,7 +62,7 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots);
+    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
 
     expect(result).toMatchObject([
       {
@@ -120,7 +120,7 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots);
+    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
 
     expect(result).toMatchObject([
       {
@@ -191,7 +191,7 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots);
+    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
 
     expect(result).toMatchObject([
       {

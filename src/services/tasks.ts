@@ -1,4 +1,4 @@
-import type { Event, Result } from "../core/types";
+import type { Event, Result } from "../types/types";
 import { Temporal } from "@js-temporal/polyfill";
 import { insertEvent } from "../db/db";
 

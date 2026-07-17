@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
-import type { Event } from "../core/types";
+import type { Event } from "../types/types";
 import { Temporal } from "@js-temporal/polyfill";
 
-export const taskFactory = (partial: Partial<Event> = {}): Event => {
+export const taskFactory = (partial: Partial<Event<Temporal.PlainTime | Temporal.PlainDateTime | null>> = {}) => {
   return {
     type: "task",
     id: crypto.randomUUID(),
@@ -33,19 +33,19 @@ describe("Assign task time", () => {
         duration: Temporal.Duration.from({ minutes: 60 }),
         weight: 1,
         slotId: "1",
-      }),
+      }) as Event,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         weight: 1,
         slotId: "1",
-      }),
+      }) as Event,
       taskFactory({
         id: "3",
         duration: Temporal.Duration.from({ hours: 2 }),
         weight: 1,
         slotId: "1",
-      }),
+      }) as Event,
     ];
     const result = scheduleTasksInSlot(
       queuedTasks,
@@ -71,28 +71,28 @@ describe("Assign task time", () => {
   });
 
   it("should skip busy events and assign tasks to another available time", () => {
-    const busyEvents: Event[] = [
+    const busyEvents: Event<Temporal.PlainDateTime>[] = [
       taskFactory({
         id: "3",
         name: "Task3",
-        start: Temporal.PlainTime.from({ hour: 1, minute: 0 }), // 60 mins
-        end: Temporal.PlainTime.from({ hour: 2, minute: 0 }), // 120 mins
+        start: Temporal.Now.plainDateTimeISO().add({ hours: 1, minutes: 0 }), // 60 mins
+        end: Temporal.Now.plainDateTimeISO().add({ hours: 2, minutes: 0 }), // 120 mins
         isBusy: true,
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event<Temporal.PlainDateTime>
     ];
     const queuedTasks: Event[] = [
       taskFactory({
         id: "1",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event,
     ];
 
     const result = scheduleTasksInSlot(
@@ -115,17 +115,17 @@ describe("Assign task time", () => {
         id: "1",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event,
       taskFactory({
         id: "3",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }),
+      }) as Event,
     ];
 
     const result = scheduleTasksInSlot(

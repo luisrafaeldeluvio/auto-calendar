@@ -1,59 +1,114 @@
-import type {
-  TimeSlot,
-  Event,
-  Task,
-  AutoTask,
-} from "../../../server/src/types";
+import { request } from "https";
+import type { TimeSlot, Event, Result, SlotError } from "../types/types";
 import { db } from "./db";
 
 // Timeslots
-export const addTimeSlot = (slot: TimeSlot) => db.timeslots.add(slot);
-export const addTimeSlots = (slots: TimeSlot[]) => db.timeslots.bulkAdd(slots);
 
-export const getTimeSlot = (id: string) => db.timeslots.get(id);
-export const getAllTimeSlot = () => db.timeslots.toArray();
+/**
+ * Validates a slot against existing slots for range boundaries and duration
+ *
+ * @param slot - The start and end times of the slot being validated
+ * @param ignoreId - (Optional) An ID to ignore during checks
+ *
+ * @returns An error type or null
+ */
+const validateSlot = async (
+  slot: Readonly<Omit<TimeSlot, "id" | "name">>,
+  ignoreId?: string,
+): Promise<Result<null, SlotError>> => {
+  const midnight = Temporal.PlainTime.from("00:00:00");
+  const filteredSlots = ignoreId
+    ? await db.timeslots.where("id").notEqual(ignoreId).toArray()
+    : await db.timeslots.toArray();
+  const totalSlotTime = filteredSlots.reduce((t, s) => {
+    const start = midnight.until(s.start).total({ unit: "minute" });
+    const end = midnight.until(s.start).total({ unit: "minute" });
+    return t + (end - start);
+  }, 0);
 
-export const updateTimeSlot = (id: string, changes: Partial<TimeSlot>) =>
-  db.timeslots.update(id, changes);
+  if (slot.start >= slot.end) return { ok: false, error: "INVALID_RANGE" };
+  if (
+    totalSlotTime +
+      (midnight.until(slot.start).total({ unit: "minute" }) -
+        midnight.until(slot.start).total({ unit: "minute" })) >
+    1440
+  )
+    return { ok: false, error: "TIME_EXCEEDED" };
 
-export const deleteTimeSlot = (id: string) => db.timeslots.delete(id);
+  return { ok: true, data: null };
+};
+
+export const addTimeSlot = async (
+  slot: Omit<TimeSlot, "id">,
+): Promise<Result<string, SlotError | string>> => {
+  const checkSlot = await validateSlot(slot);
+  if (!checkSlot.ok) return { ok: false, error: checkSlot.error };
+  const newSlot: TimeSlot = { ...slot, id: crypto.randomUUID() };
+
+  try {
+    await db.timeslots.add(newSlot);
+    return { ok: true, data: newSlot.id };
+  } catch (error) {
+    return { ok: false, error: String(error) };
+  }
+};
+
+// export const removeSlot = (
+//   slots: readonly TimeSlot[],
+//   id: string,
+// ): Result<MutationData, "NOT_FOUND"> => {
+//   const slot = slots.find((s) => id === s.id);
+//   if (!slot) return { ok: false, error: "NOT_FOUND" };
+
+//   const newSlots = slots.filter((s) => s.id !== id);
+
+//   return { ok: true, data: { slots: newSlots, slot: slot } };
+
+// export const addTimeSlots = (slots: TimeSlot[]) => db.timeslots.bulkAdd(slots);
+
+// export const getTimeSlot = (id: string) => db.timeslots.get(id);
+// export const getAllTimeSlot = () => db.timeslots.toArray();
+
+// export const updateTimeSlot = (id: string, changes: Partial<TimeSlot>) =>
+//   db.timeslots.update(id, changes);
+
+// export const deleteTimeSlot = (id: string) => db.timeslots.delete(id);
 
 // Events
 
-export const addEvent = (event: Event) => db.events.add(event);
-export const addEvents = (events: Event[]) => db.events.bulkAdd(events);
+export const addTask = async (
+  event: Omit<Event, "id" | "isDone" | "isSorted" | "isSortable">,
+): Promise<Result<Event, "INVALID_DATE_RANGE" | string>> => {
+  if (
+    event.startDate &&
+    event.dueDate &&
+    Temporal.PlainDateTime.compare(event.startDate, event.dueDate) === 1
+  )
+    return { ok: false, error: "INVALID_DATE_RANGE" };
 
-export const getEvent = (id: string) => db.events.get(id);
-export const getAllEvents = () => db.events.toArray();
+  const newTask: Event = {
+    ...event,
+    id: crypto.randomUUID(),
+    isDone: false,
+    isSorted: false,
+    isSortable: true,
+  };
 
-export const updateEvent = (id: string, changes: Partial<Event>) =>
-  db.events.update(id, changes);
+  try {
+    await db.events.add(newTask);
+    return { ok: true, data: newTask };
+  } catch (error) {
+    return { ok: false, error: String(error) };
+  }
+};
 
-export const deleteEvent = (id: string) => db.events.delete(id);
+// export const addEvent = (event: Event) => db.events.add(event);
+// export const addEvents = (events: Event[]) => db.events.bulkAdd(events);
 
-// Tasks
+// export const getEvent = (id: string) => db.events.get(id);
+// export const getAllEvents = () => db.events.toArray();
 
-export const addTask = (task: Task) => db.tasks.add(task);
-export const addTasks = (tasks: Task[]) => db.tasks.bulkAdd(tasks);
+// export const updateEvent = (id: string, changes: Partial<Event>) =>
+//   db.events.update(id, changes);
 
-export const getTask = (id: string) => db.tasks.get(id);
-export const getAllTasks = () => db.tasks.toArray();
-
-export const updateTask = (id: string, changes: Partial<Task>) =>
-  db.tasks.update(id, changes);
-
-export const deleteTask = (id: string) => db.tasks.delete(id);
-
-// Autotasks
-
-export const addAutoTask = (autoTask: AutoTask) => db.autoTasks.add(autoTask);
-export const addAutoTasks = (autoTasks: AutoTask[]) =>
-  db.autoTasks.bulkAdd(autoTasks);
-
-export const getAutoTask = (id: string) => db.autoTasks.get(id);
-export const getAllAutoTasks = () => db.autoTasks.toArray();
-
-export const updateAutoTask = (id: string, changes: Partial<AutoTask>) =>
-  db.autoTasks.update(id, changes);
-
-export const deleteAutoTask = (id: string) => db.autoTasks.delete(id);
+// export const deleteEvent = (id: string) => db.events.delete(id);

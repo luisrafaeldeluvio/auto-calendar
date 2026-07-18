@@ -1,22 +1,18 @@
-import { Dexie, type EntityTable } from "dexie";
-import type {
-  TimeSlot,
-  Event,
-  Task,
-  AutoTask,
-} from "../../../server/src/types";
+import { Dexie, type Table } from "dexie";
+import type { TimeSlot, Event, EventInterval } from "../types/types";
 
 export const db = new Dexie("AutoCalendarDB") as Dexie & {
-  timeslots: EntityTable<TimeSlot, "id">;
-  events: EntityTable<Event, "id">;
-  tasks: EntityTable<Task, "id">;
-  autoTasks: EntityTable<AutoTask, "id">;
+  timeslots: Table<TimeSlot, string>;
+  events: Table<Event<EventInterval>, string>;
 };
 
 db.version(1).stores({
-  timeslots: "id, name",
-  events: "id, name, isBusy",
-  tasks: "id, name, isBusy, isDone",
-  autoTasks:
-    "id, name, isBusy, isDone, duration, weight, slotId, buffer, startDate, dueDate",
+  timeslots: "id, start, end",
+  events: `
+    id, type, start, 
+    end, isBusy, isDone, 
+    isSortable, isSorted,
+    duration, weight, slotId, 
+    buffer, startDate, dueDate
+  `,
 });

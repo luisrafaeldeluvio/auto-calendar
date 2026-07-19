@@ -21,28 +21,9 @@ import { toTimeSlotDbModel } from "./serializeDataObject";
 const validateSlot = async (
   start: Temporal.PlainTime,
   end: Temporal.PlainTime,
-  ignoreId?: string,
 ): Promise<Result<null, SlotError>> => {
-  const midnight = Temporal.PlainTime.from("00:00:00");
-
-  const filteredSlots = ignoreId
-    ? await db.timeslots.where("id").notEqual(ignoreId).toArray()
-    : await db.timeslots.toArray();
-  const totalSlotTime = filteredSlots.reduce((t, s) => {
-    const start = midnight.until(s.start).total({ unit: "minute" });
-    const end = midnight.until(s.end).total({ unit: "minute" });
-    return t + (end - start);
-  }, 0);
-
   if (Temporal.PlainTime.compare(start, end) >= 0)
     return { ok: false, error: "INVALID_RANGE" };
-  if (
-    totalSlotTime +
-      (midnight.until(start).total({ unit: "minute" }) -
-        midnight.until(start).total({ unit: "minute" })) >
-    1440
-  )
-    return { ok: false, error: "TIME_EXCEEDED" };
 
   return { ok: true, data: null };
 };

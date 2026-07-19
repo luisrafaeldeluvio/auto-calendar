@@ -1,20 +1,19 @@
 import { useRef } from "react";
-import { addSlot } from "../../server/src/engine/time-slots";
 import { addTimeSlot } from "../db/helpers";
+import { Temporal } from "@js-temporal/polyfill";
 
-const createTimeslotFromForm = (data: FormData) => {
-  const slot = addSlot([], {
+const createTimeslotFromForm = async (data: FormData) => {
+  const slot = {
     name: String(data.get("name")),
-    start: Number(data.get("start")),
-    end: Number(data.get("end")),
-  });
-
-  if (slot.ok) {
-    addTimeSlot(slot.data.slot);
-    console.log("success creating timeslot: ", slot.data.slot);
-  } else {
-    console.log("error creating timeslot: ", slot.error);
+    start: Temporal.PlainTime.from({minute: Number(data.get("start"))}),
+    end: Temporal.PlainTime.from({minute: Number(data.get("end"))})
   }
+
+  console.log(slot.start instanceof Temporal.PlainTime, slot.start.toString())
+  console.log(slot.end instanceof Temporal.PlainTime, slot.end.toString())
+ const x = await addTimeSlot(slot)
+
+ if (!x.ok)alert(x.error)
 };
 
 export const CreateTimeslotButton = () => {

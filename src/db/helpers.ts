@@ -1,4 +1,3 @@
-import { request } from "https";
 import type { TimeSlot, Event, Result, SlotError } from "../types/types";
 import { db } from "./db";
 
@@ -16,17 +15,22 @@ const validateSlot = async (
   slot: Readonly<Omit<TimeSlot, "id" | "name">>,
   ignoreId?: string,
 ): Promise<Result<null, SlotError>> => {
+  console.log(
+    slot.start instanceof Temporal.PlainTime,
+    slot.end instanceof Temporal.PlainTime,
+  );
   const midnight = Temporal.PlainTime.from("00:00:00");
   const filteredSlots = ignoreId
     ? await db.timeslots.where("id").notEqual(ignoreId).toArray()
     : await db.timeslots.toArray();
   const totalSlotTime = filteredSlots.reduce((t, s) => {
     const start = midnight.until(s.start).total({ unit: "minute" });
-    const end = midnight.until(s.start).total({ unit: "minute" });
+    const end = midnight.until(s.end).total({ unit: "minute" });
     return t + (end - start);
   }, 0);
 
-  if (slot.start >= slot.end) return { ok: false, error: "INVALID_RANGE" };
+  if (Temporal.PlainTime.compare(slot.start, slot.end) >= 0)
+    return { ok: false, error: "INVALID_RANGE" };
   if (
     totalSlotTime +
       (midnight.until(slot.start).total({ unit: "minute" }) -
@@ -41,6 +45,9 @@ const validateSlot = async (
 export const addTimeSlot = async (
   slot: Omit<TimeSlot, "id">,
 ): Promise<Result<string, SlotError | string>> => {
+  console.log(
+     slot.start ,
+     slot.end );
   const checkSlot = await validateSlot(slot);
   if (!checkSlot.ok) return { ok: false, error: checkSlot.error };
   const newSlot: TimeSlot = { ...slot, id: crypto.randomUUID() };
@@ -52,6 +59,9 @@ export const addTimeSlot = async (
     return { ok: false, error: String(error) };
   }
 };
+
+// okay so i think i need to transform the Temporal stuff into numbers/string when adding them to db
+// for faster, though it still does work.
 
 // export const removeSlot = (
 //   slots: readonly TimeSlot[],
@@ -67,7 +77,7 @@ export const addTimeSlot = async (
 // export const addTimeSlots = (slots: TimeSlot[]) => db.timeslots.bulkAdd(slots);
 
 // export const getTimeSlot = (id: string) => db.timeslots.get(id);
-// export const getAllTimeSlot = () => db.timeslots.toArray();
+export const getAllTimeSlot = () => db.timeslots.toArray();
 
 // export const updateTimeSlot = (id: string, changes: Partial<TimeSlot>) =>
 //   db.timeslots.update(id, changes);

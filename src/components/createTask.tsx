@@ -1,7 +1,7 @@
-import { useRef } from "react";
-import {getAllSlots} from "../../../server/src/db/db"
+import { useEffect, useRef, useState } from "react";
 
 import { type TimeSlot } from "../types/types";
+import { getAllTimeSlot } from "../db/helpers";
 
 const durationOptions = [
   {
@@ -103,7 +103,16 @@ const weightOptions = [
 
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const slots: TimeSlot[] | undefined = getAllSlots();
+  const [slots, setSlots] = useState<TimeSlot[]>([]) 
+
+  useEffect(() => {
+    async function fn() {
+      const s = await getAllTimeSlot();
+      setSlots(s)
+    }
+
+    fn()
+  }, [])
 
   const toggleDialog = () => {
     if (dialogRef.current) {

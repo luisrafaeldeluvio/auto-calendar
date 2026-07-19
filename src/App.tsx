@@ -11,6 +11,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import type { Event, TimeSlot } from "./types/types";
 import { Temporal } from "@js-temporal/polyfill";
+import { CreateTimeslotButton } from "./components/CreateTimeslots";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -123,6 +124,7 @@ function App() {
     <>
       <div>
         <CreateTaskButton></CreateTaskButton>
+        <CreateTimeslotButton></CreateTimeslotButton>
         <div>
           <h1>calendar1</h1>
           <Calendar

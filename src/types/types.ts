@@ -54,8 +54,8 @@ export interface EventDbModel {
   name: string;
   notes: string;
 
-  start: string; // date-time in the RFC 9557 format
-  end: string; // date-time in the RFC 9557 format
+  start: string | null; // date-time in the RFC 9557 format
+  end: string | null; // date-time in the RFC 9557 format
 
   isBusy: boolean;
   isDone: boolean;

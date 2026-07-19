@@ -1,5 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { TimeSlot, TimeSlotDbModel } from "../types/types";
+import type {
+  Event,
+  EventDbModel,
+  EventInterval,
+  TimeSlot,
+  TimeSlotDbModel,
+} from "../types/types";
 
 export const toTimeSlotDbModel = (slot: TimeSlot): TimeSlotDbModel => ({
   ...slot,
@@ -9,6 +15,38 @@ export const toTimeSlotDbModel = (slot: TimeSlot): TimeSlotDbModel => ({
 
 export const fromTimeSlotDbModel = (slot: TimeSlotDbModel): TimeSlot => ({
   ...slot,
-  start: Temporal.PlainTime.from(slot.start) ,
-  end: Temporal.PlainTime.from(slot.end)
+  start: Temporal.PlainTime.from(slot.start),
+  end: Temporal.PlainTime.from(slot.end),
+});
+
+export const toEventDbModel = (
+  event: Event<Temporal.PlainDateTime | null>,
+): EventDbModel => ({
+  ...event,
+  start: event.start?.toString() ?? null,
+  end: event.end?.toString() ?? null,
+  duration: event.duration?.toString() ?? null,
+  buffer_before: event.buffer_before?.toString() ?? null,
+  buffer_after: event.buffer_after?.toString() ?? null,
+  startDate: event.startDate?.toString() ?? null,
+  dueDate: event.dueDate?.toString() ?? null,
+});
+
+export const fromEventDbModel = (
+  event: EventDbModel,
+): Event<Temporal.PlainDateTime | null> => ({
+  ...event,
+  start: event.start ? Temporal.PlainDateTime.from(event.start) : null,
+  end: event.end ? Temporal.PlainDateTime.from(event.end) : null,
+  duration: event.duration ? Temporal.Duration.from(event.duration) : null,
+  buffer_before: event.buffer_before
+    ? Temporal.Duration.from(event.buffer_before)
+    : null,
+  buffer_after: event.buffer_after
+    ? Temporal.Duration.from(event.buffer_after)
+    : null,
+  startDate: event.startDate
+    ? Temporal.PlainDateTime.from(event.startDate)
+    : null,
+  dueDate: event.dueDate ? Temporal.PlainDateTime.from(event.dueDate) : null,
 });

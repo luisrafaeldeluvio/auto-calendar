@@ -5,8 +5,8 @@ import { Temporal } from "@js-temporal/polyfill";
 const createTimeslotFromForm = async (data: FormData) => {
   const slot = {
     name: String(data.get("name")),
-    start: Temporal.PlainTime.from({ minute: Number(data.get("start")) }),
-    end: Temporal.PlainTime.from({ minute: Number(data.get("end")) }),
+    start: Temporal.PlainTime.from(String(data.get("start"))),
+    end: Temporal.PlainTime.from(String(data.get("end"))),
   };
 
   const x = await addTimeSlot(slot);
@@ -32,9 +32,11 @@ export const CreateTimeslotButton = () => {
           <input type="text" name="name" id="name" />
 
           <label htmlFor="start">start</label>
-          <input type="number" name="start" id="start" min="0" max="1440" />
+          <input type="time" name="start" id="start" min="0" max="1440" />
+
           <label htmlFor="end">end</label>
-          <input type="number" name="end" id="end" min="0" max="1440" />
+          <input type="time" name="end" id="end" min="0" max="1440" />
+
           <button type="submit">Create</button>
         </form>
         <button onClick={toggleDialog}>Close</button>

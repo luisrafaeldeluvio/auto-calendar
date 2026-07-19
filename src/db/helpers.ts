@@ -1,8 +1,9 @@
+import { Temporal } from "@js-temporal/polyfill";
 import type { TimeSlot, Event, Result, SlotError } from "../types/types";
 import { db } from "./db";
+import { toTimeSlotDbModel } from "./serializeDataObject";
 
 // Timeslots
-
 /**
  * Validates a slot against existing slots for range boundaries and duration
  *
@@ -12,14 +13,12 @@ import { db } from "./db";
  * @returns An error type or null
  */
 const validateSlot = async (
-  slot: Readonly<Omit<TimeSlot, "id" | "name">>,
+  start: Temporal.PlainTime,
+  end: Temporal.PlainTime,
   ignoreId?: string,
 ): Promise<Result<null, SlotError>> => {
-  console.log(
-    slot.start instanceof Temporal.PlainTime,
-    slot.end instanceof Temporal.PlainTime,
-  );
   const midnight = Temporal.PlainTime.from("00:00:00");
+
   const filteredSlots = ignoreId
     ? await db.timeslots.where("id").notEqual(ignoreId).toArray()
     : await db.timeslots.toArray();
@@ -29,12 +28,12 @@ const validateSlot = async (
     return t + (end - start);
   }, 0);
 
-  if (Temporal.PlainTime.compare(slot.start, slot.end) >= 0)
+  if (Temporal.PlainTime.compare(start, end) >= 0)
     return { ok: false, error: "INVALID_RANGE" };
   if (
     totalSlotTime +
-      (midnight.until(slot.start).total({ unit: "minute" }) -
-        midnight.until(slot.start).total({ unit: "minute" })) >
+      (midnight.until(start).total({ unit: "minute" }) -
+        midnight.until(start).total({ unit: "minute" })) >
     1440
   )
     return { ok: false, error: "TIME_EXCEEDED" };
@@ -45,15 +44,12 @@ const validateSlot = async (
 export const addTimeSlot = async (
   slot: Omit<TimeSlot, "id">,
 ): Promise<Result<string, SlotError | string>> => {
-  console.log(
-     slot.start ,
-     slot.end );
-  const checkSlot = await validateSlot(slot);
+  const checkSlot = await validateSlot(slot.start, slot.end);
   if (!checkSlot.ok) return { ok: false, error: checkSlot.error };
   const newSlot: TimeSlot = { ...slot, id: crypto.randomUUID() };
 
   try {
-    await db.timeslots.add(newSlot);
+    await db.timeslots.add(toTimeSlotDbModel(newSlot));
     return { ok: true, data: newSlot.id };
   } catch (error) {
     return { ok: false, error: String(error) };

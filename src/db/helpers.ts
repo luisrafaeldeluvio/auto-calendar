@@ -1,5 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { TimeSlot, Event, Result, SlotError } from "../types/types";
+import type {
+  TimeSlot,
+  Event,
+  Result,
+  SlotError,
+  TimeSlotDbModel,
+} from "../types/types";
 import { db } from "./db";
 import { toTimeSlotDbModel } from "./serializeDataObject";
 
@@ -56,31 +62,16 @@ export const addTimeSlot = async (
   }
 };
 
-// okay so i think i need to transform the Temporal stuff into numbers/string when adding them to db
-// for faster, though it still does work.
-
-// export const removeSlot = (
-//   slots: readonly TimeSlot[],
-//   id: string,
-// ): Result<MutationData, "NOT_FOUND"> => {
-//   const slot = slots.find((s) => id === s.id);
-//   if (!slot) return { ok: false, error: "NOT_FOUND" };
-
-//   const newSlots = slots.filter((s) => s.id !== id);
-
-//   return { ok: true, data: { slots: newSlots, slot: slot } };
-
-// export const addTimeSlots = (slots: TimeSlot[]) => db.timeslots.bulkAdd(slots);
-
-// export const getTimeSlot = (id: string) => db.timeslots.get(id);
-export const getAllTimeSlot = () => db.timeslots.toArray();
-
-// export const updateTimeSlot = (id: string, changes: Partial<TimeSlot>) =>
-//   db.timeslots.update(id, changes);
-
-// export const deleteTimeSlot = (id: string) => db.timeslots.delete(id);
-
-// Events
+export const getAllTimeSlots = async (): Promise<
+  Result<TimeSlotDbModel[], string>
+> => {
+  try {
+    const timeslots = await db.timeslots.toArray();
+    return { ok: true, data: timeslots };
+  } catch (error) {
+    return { ok: false, error: String(error) };
+  }
+};
 
 export const addTask = async (
   event: Omit<Event, "id" | "isDone" | "isSorted" | "isSortable">,
@@ -107,14 +98,3 @@ export const addTask = async (
     return { ok: false, error: String(error) };
   }
 };
-
-// export const addEvent = (event: Event) => db.events.add(event);
-// export const addEvents = (events: Event[]) => db.events.bulkAdd(events);
-
-// export const getEvent = (id: string) => db.events.get(id);
-// export const getAllEvents = () => db.events.toArray();
-
-// export const updateEvent = (id: string, changes: Partial<Event>) =>
-//   db.events.update(id, changes);
-
-// export const deleteEvent = (id: string) => db.events.delete(id);

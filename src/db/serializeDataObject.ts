@@ -2,7 +2,6 @@ import { Temporal } from "@js-temporal/polyfill";
 import type {
   Event,
   EventDbModel,
-  EventInterval,
   TimeSlot,
   TimeSlotDbModel,
 } from "../types/types";
@@ -25,9 +24,9 @@ export const toEventDbModel = (
   ...event,
   start: event.start?.toString() ?? null,
   end: event.end?.toString() ?? null,
-  duration: event.duration?.toString() ?? null,
-  buffer_before: event.buffer_before?.toString() ?? null,
-  buffer_after: event.buffer_after?.toString() ?? null,
+  duration: event.duration?.toString(),
+  bufferBefore: event.bufferBefore?.toString(),
+  bufferAfter: event.bufferAfter?.toString(),
   startDate: event.startDate?.toString() ?? null,
   dueDate: event.dueDate?.toString() ?? null,
 });
@@ -38,13 +37,9 @@ export const fromEventDbModel = (
   ...event,
   start: event.start ? Temporal.PlainDateTime.from(event.start) : null,
   end: event.end ? Temporal.PlainDateTime.from(event.end) : null,
-  duration: event.duration ? Temporal.Duration.from(event.duration) : null,
-  buffer_before: event.buffer_before
-    ? Temporal.Duration.from(event.buffer_before)
-    : null,
-  buffer_after: event.buffer_after
-    ? Temporal.Duration.from(event.buffer_after)
-    : null,
+  duration: Temporal.Duration.from(event.duration),
+  bufferBefore: Temporal.Duration.from(event.bufferBefore),
+  bufferAfter: Temporal.Duration.from(event.bufferAfter),
   startDate: event.startDate
     ? Temporal.PlainDateTime.from(event.startDate)
     : null,

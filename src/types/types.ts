@@ -67,11 +67,11 @@ export interface EventDbModel {
   weight: Weight;
   slotId: string;
 
-  buffer_before: string; // duration in the ISO 8601 format
-  buffer_after: string; // duration in the ISO 8601 format
+  bufferBefore: string; // duration in the ISO 8601 format
+  bufferAfter: string; // duration in the ISO 8601 format
 
-  startDate: string; //  date-time in the RFC 9557 format
-  dueDate: string; //  date-time in the RFC 9557 format
+  startDate: string | null; //  date-time in the RFC 9557 format
+  dueDate: string | null; //  date-time in the RFC 9557 format
 }
 
 export interface TasksSchedule {

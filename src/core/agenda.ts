@@ -18,16 +18,16 @@ export const eachDayOfInterval = (
 export const agenda = (
   start: Temporal.PlainDate,
   end: Temporal.PlainDate,
-  allTasks: Event[],
+  allTasks: Event<null>[],
   busyEvents: Event<Temporal.PlainDateTime>[],
   timeSlots: TimeSlot[],
-): TasksSchedule<Temporal.PlainDateTime> => {
+): TasksSchedule => {
   const scheduleTasksInAgenda = (
     dates: Temporal.PlainDate[],
-    allTasks: Event[],
+    allTasks: Event<null>[],
     timeSlots: TimeSlot[],
     scheduled: Event<Temporal.PlainDateTime>[] = [],
-  ): TasksSchedule<Temporal.PlainDateTime> => {
+  ): TasksSchedule => {
     const [date, ...rest] = dates;
     if (!date)
       return {

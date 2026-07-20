@@ -21,9 +21,9 @@ export interface TimeSlotDbModel {
   start: string;
   end: string;
 }
-export type EventInterval = Temporal.PlainTime | Temporal.PlainDateTime | null;
+export type EventInterval = Temporal.PlainDateTime | null;
 
-export interface Event<T extends EventInterval = null> {
+export interface Event<T extends EventInterval> {
   type: "event" | "task";
   id: string;
   name: string;
@@ -36,17 +36,18 @@ export interface Event<T extends EventInterval = null> {
   isDone: boolean;
   isSortable: boolean;
   isSorted: boolean;
-    
-  duration: Temporal.Duration | null;
+
+  duration: Temporal.Duration;
   weight: Weight;
   slotId: string;
 
-  buffer_before: Temporal.Duration | null; // duration in the ISO 8601 format
-  buffer_after: Temporal.Duration | null; // duration in the ISO 8601 format
+  bufferBefore: Temporal.Duration;
+  bufferAfter: Temporal.Duration;
 
   startDate: Temporal.PlainDateTime | null;
   dueDate: Temporal.PlainDateTime | null;
 }
+
 
 export interface EventDbModel {
   type: "event" | "task";
@@ -62,18 +63,18 @@ export interface EventDbModel {
   isSortable: boolean;
   isSorted: boolean;
 
-  duration: string | null; // duration in the ISO 8601 format
+  duration: string; // duration in the ISO 8601 format
   weight: Weight;
   slotId: string;
 
-  buffer_before: string | null; // duration in the ISO 8601 format
-  buffer_after: string | null; // duration in the ISO 8601 format
+  buffer_before: string; // duration in the ISO 8601 format
+  buffer_after: string; // duration in the ISO 8601 format
 
-  startDate: string | null; //  date-time in the RFC 9557 format
-  dueDate: string | null; //  date-time in the RFC 9557 format
+  startDate: string; //  date-time in the RFC 9557 format
+  dueDate: string; //  date-time in the RFC 9557 format
 }
 
-export interface TasksSchedule<T extends EventInterval = null> {
-  sortedTasks: Event<T>[];
+export interface TasksSchedule {
+  sortedTasks: Event<Temporal.PlainDateTime>[];
   queue: Event<null>[];
 }

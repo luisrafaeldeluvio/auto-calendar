@@ -8,15 +8,15 @@ import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 // recalculating the whole day, we have the option to only
 // calculate a later part of the day.
 export const scheduleTasks = (
-  queuedTasks: Event[],
+  queuedTasks: Event<null>[],
   busyEvents: Event<Temporal.PlainDateTime>[],
   timeSlots: TimeSlot[],
   date: Temporal.PlainDate,
-): TasksSchedule<Temporal.PlainDateTime>[] => {
+): TasksSchedule[] => {
   const scheduleTasksRecursion = (
     busyEvents: Event<Temporal.PlainDateTime>[],
     timeSlots: TimeSlot[],
-    sortedTasks: TasksSchedule<Temporal.PlainDateTime>[] = [],
+    sortedTasks: TasksSchedule[] = [],
   ) => {
     const [currentSlot, nextSlot, ...slots] = timeSlots;
     if (!currentSlot) return sortedTasks;
@@ -26,25 +26,20 @@ export const scheduleTasks = (
       nextSlot !== undefined &&
       Temporal.PlainTime.compare(nextSlot.start, currentSlot.end) === -1;
 
-    const sorted: TasksSchedule<Temporal.PlainTime> = areSlotsOverlapping
-      ? resolveSlotTaskConflicts(currentSlot, nextSlot, queuedTasks, busyEvents)
+    const sorted: TasksSchedule = areSlotsOverlapping
+      ? resolveSlotTaskConflicts(currentSlot, nextSlot, queuedTasks, busyEvents,date)
       : scheduleTasksInSlot(
           tasks,
           busyEvents,
           currentSlot.start,
           currentSlot.end,
+          date
         );
 
-    const parsedSortedTasks = sorted.sortedTasks.map((ev) => ({
-      ...ev,
-      start: date.toPlainDateTime(ev.start),
-      end: date.toPlainDateTime(ev.end),
-    }));
-
     return scheduleTasksRecursion(
-      [...busyEvents, ...parsedSortedTasks],
+      [...busyEvents, ...sorted.sortedTasks],
       [...(nextSlot ? [nextSlot] : []), ...slots],
-      [...sortedTasks, { sortedTasks: parsedSortedTasks, queue: sorted.queue }],
+      [...sortedTasks, { sortedTasks: sorted.sortedTasks, queue: sorted.queue }],
     );
   };
 

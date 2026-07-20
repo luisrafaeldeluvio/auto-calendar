@@ -2,19 +2,20 @@ import { Temporal } from "@js-temporal/polyfill";
 import type { Event, TasksSchedule } from "../types/types";
 
 export const scheduleTasksInSlot = (
-  queuedTasks: Event[],
+  queuedTasks: Event<null>[],
   activeEvents: Event<Temporal.PlainDateTime>[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
+  date: Temporal.PlainDate
 ) => {
   const busyEvents = activeEvents.filter((e) => e.isBusy);
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
 
   const schedule = (
-    tasksToProcess: Event[],
+    tasksToProcess: Event<null>[],
     currentTime: Temporal.PlainTime,
-    sortedTasks: Event<Temporal.PlainTime>[],
-  ): TasksSchedule<Temporal.PlainTime> => {
+    sortedTasks: Event<Temporal.PlainDateTime>[],
+  ): TasksSchedule => {
     const [task, ...remainingTasks] = tasksToProcess;
     if (!task) return { sortedTasks: sortedTasks, queue: [] };
 
@@ -44,10 +45,10 @@ export const scheduleTasksInSlot = (
       };
     }
 
-    const newTask: Event<Temporal.PlainTime> = {
+    const newTask: Event<Temporal.PlainDateTime> = {
       ...task,
-      start: taskStartTime,
-      end: taskEndTime,
+      start: date.toPlainDateTime(taskStartTime),
+      end: date.toPlainDateTime(taskEndTime),
       isBusy: true,
       isSorted: true,
     };

@@ -4,10 +4,10 @@ import { scheduleTasksInSlot, } from "./scheduleTasksInSlot";
 
 const resolveConflictsByWeight = (
   timeslot: TimeSlot,
-  tasks: Event<Temporal.PlainTime>[],
-  result: Event<Temporal.PlainTime>[] = [],
-  queue: Event[] = [],
-): TasksSchedule<Temporal.PlainTime> => {
+  tasks: Event<Temporal.PlainDateTime>[],
+  result: Event<Temporal.PlainDateTime>[] = [],
+  queue: Event<null>[] = [],
+): TasksSchedule => {
   const [curr, ...rest] = tasks;
   if (!curr)
     return {
@@ -42,20 +42,23 @@ const resolveConflictsByWeight = (
 export const resolveSlotTaskConflicts = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
-  tasks: Event[],
+  tasks: Event<null>[],
   busyEvents: Event<Temporal.PlainDateTime>[],
-): TasksSchedule<Temporal.PlainTime> => {
+  date: Temporal.PlainDate
+): TasksSchedule => {
   const assignedTasksA = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotA.id),
     busyEvents,
     timeslotA.start,
     timeslotA.end,
+    date
   );
   const assignedTasksB = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotB.id),
     busyEvents,
     timeslotA.start,
     timeslotB.end,
+    date
   );
 
   const result = resolveConflictsByWeight(timeslotA, [

@@ -29,13 +29,20 @@ export const CreateTimeslotButton = () => {
         <p>this popped?</p>
         <form action={createTimeslotFromForm}>
           <label htmlFor="name">Name</label>
-          <input type="text" name="name" id="name" />
+          <input type="text" name="name" id="name" required />
 
           <label htmlFor="start">start</label>
-          <input type="time" name="start" id="start" min="0" max="1440" />
+          <input
+            type="time"
+            name="start"
+            id="start"
+            min="0"
+            max="1440"
+            required
+          />
 
           <label htmlFor="end">end</label>
-          <input type="time" name="end" id="end" min="0" max="1440" />
+          <input type="time" name="end" id="end" min="0" max="1440" required />
 
           <button type="submit">Create</button>
         </form>

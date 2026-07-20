@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-import { type TimeSlot } from "../types/types";
-import { getAllTimeSlot } from "../db/helpers";
+import {
+  type TimeSlot,
+  type TimeSlotDbModel,
+  type Weight,
+  type Event
+} from "../types/types";
+import { addEvent, getAllTimeSlots } from "../db/helpers";
+import { Temporal } from "@js-temporal/polyfill";
 
 const durationOptions = [
   {
@@ -73,46 +79,46 @@ const weightOptions = [
   },
 ];
 
-// const createTaskFromForm = (data: FormData) => {
-//   const task = createAutoTask({
-//     name: String(data.get("name")),
-//     notes: String(data.get("notes") ?? ""),
+const createTaskFromForm = async (data: FormData) => {
+  const task:Omit<Event<null>, "id"> = {
+    type: "task",
+    name: String(data.get("name")),
+    notes: String(data.get("notes")),
+    start: null,
+    end: null,
+    isBusy: true,
+    isDone: false,
+    isSortable: true,
+    isSorted: false,
+    duration: Temporal.Duration.from({minutes: Number(data.get("durations"))}),
+    weight: Number(data.get("weight")) as Weight,
+    slotId: String(data.get("timeslots")),
 
-//     isBusy: true,
+    bufferBefore: Temporal.Duration.from({ hours: 0 }),
+    bufferAfter: Temporal.Duration.from({ hours: 0 }),
+    startDate: Temporal.PlainDateTime.from(String(data.get("startDate"))),
+    dueDate: Temporal.PlainDateTime.from(String(data.get("dueDate"))),
+  };
+  const x = await addEvent(task)
 
-//     duration: Number(data.get("durations")),
-//     weight: Number(data.get("weight")) as Weight,
-//     slotId: String(data.get("timeslots")),
-
-//     buffer: {
-//       before: 0,
-//       after: 0,
-//     },
-
-//     startDate: getTime(String(data.get("startDate"))),
-//     dueDate: getTime(String(data.get("dueDate"))),
-//   });
-
-//   if (task.ok) {
-//     console.log(task.data);
-//     addAutoTask(task.data);
-//   } else {
-//     console.error(task.error);
-//   }
-// };
-
+  if(!x.ok) alert(x.error)
+};
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [slots, setSlots] = useState<TimeSlot[]>([]) 
+  const [slots, setSlots] = useState<TimeSlotDbModel[]>([]);
 
   useEffect(() => {
     async function fn() {
-      const s = await getAllTimeSlot();
-      setSlots(s)
+      const s = await getAllTimeSlots();
+      if (!s.ok) {
+        alert(s.error);
+        return;
+      }
+      setSlots(s.data);
     }
 
-    fn()
-  }, [])
+    fn();
+  }, []);
 
   const toggleDialog = () => {
     if (dialogRef.current) {
@@ -125,7 +131,7 @@ export const CreateTaskButton = () => {
       <dialog ref={dialogRef} popover="manual">
         <p>this popped?</p>
         <form
-          // action={createTaskFromForm}
+          action={createTaskFromForm}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -136,13 +142,11 @@ export const CreateTaskButton = () => {
 
           <label htmlFor="durations">duration</label>
           <select name="durations" id="durations" required>
-            {durationOptions.map((e) => {
-              return (
-                <option value={e.duration} key={e.duration}>
-                  {e.text}
-                </option>
-              );
-            })}
+            {durationOptions.map((e) => (
+              <option value={e.duration} key={e.duration}>
+                {e.text}
+              </option>
+            ))}
           </select>
 
           <div
@@ -171,13 +175,11 @@ export const CreateTaskButton = () => {
 
           <label htmlFor="timeslots">timeslot</label>
           <select name="timeslots" id="timeslots" required>
-            {slots?.map((s) => {
-              return (
-                <option value={s.id} key={s.id}>
-                  {s.name}
-                </option>
-              );
-            })}
+            {slots?.map((s) => (
+              <option value={s.id} key={s.id}>
+                {s.name}
+              </option>
+            ))}
           </select>
 
           <label htmlFor="startDate">Can be started on</label>

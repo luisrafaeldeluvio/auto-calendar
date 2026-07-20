@@ -7,7 +7,7 @@ import type {
   TimeSlotDbModel,
 } from "../types/types";
 import { db } from "./db";
-import { toTimeSlotDbModel } from "./serializeDataObject";
+import { toEventDbModel, toTimeSlotDbModel } from "./serializeDataObject";
 
 // Timeslots
 /**
@@ -40,7 +40,7 @@ export const addTimeSlot = async (
     return { ok: true, data: newSlot.id };
   } catch (error) {
     return { ok: false, error: String(error) };
-  }
+  } 
 };
 
 export const getAllTimeSlots = async (): Promise<
@@ -54,9 +54,9 @@ export const getAllTimeSlots = async (): Promise<
   }
 };
 
-export const addTask = async (
-  event: Omit<Event, "id" | "isDone" | "isSorted" | "isSortable">,
-): Promise<Result<Event, "INVALID_DATE_RANGE" | string>> => {
+export const addEvent = async (
+  event: Omit<Event<Temporal.PlainDateTime | null>, "id">,
+): Promise<Result<string, "INVALID_DATE_RANGE" | string>> => {
   if (
     event.startDate &&
     event.dueDate &&
@@ -64,17 +64,14 @@ export const addTask = async (
   )
     return { ok: false, error: "INVALID_DATE_RANGE" };
 
-  const newTask: Event = {
+  const newTask: Event<Temporal.PlainDateTime | null> = {
     ...event,
     id: crypto.randomUUID(),
-    isDone: false,
-    isSorted: false,
-    isSortable: true,
   };
 
   try {
-    await db.events.add(newTask);
-    return { ok: true, data: newTask };
+    await db.events.add(toEventDbModel(newTask));
+    return { ok: true, data: newTask.id };
   } catch (error) {
     return { ok: false, error: String(error) };
   }

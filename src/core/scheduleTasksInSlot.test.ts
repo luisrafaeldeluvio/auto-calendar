@@ -3,7 +3,9 @@ import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 import type { Event } from "../types/types";
 import { Temporal } from "@js-temporal/polyfill";
 
-export const taskFactory = (partial: Partial<Event<Temporal.PlainTime | Temporal.PlainDateTime | null>> = {}) => {
+export const taskFactory = (
+  partial: Partial<Event<Temporal.PlainDateTime | null>> = {},
+) => {
   return {
     type: "task",
     id: crypto.randomUUID(),
@@ -27,46 +29,47 @@ export const taskFactory = (partial: Partial<Event<Temporal.PlainTime | Temporal
 
 describe("Assign task time", () => {
   it("should assign tasks to available time slots without conflicts", () => {
-    const queuedTasks: Event[] = [
+    const queuedTasks: Event<null>[] = [
       taskFactory({
         id: "1",
         duration: Temporal.Duration.from({ minutes: 60 }),
         weight: 1,
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         weight: 1,
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
       taskFactory({
         id: "3",
         duration: Temporal.Duration.from({ hours: 2 }),
         weight: 1,
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
     ];
     const result = scheduleTasksInSlot(
       queuedTasks,
       [],
       Temporal.PlainTime.from({ hour: 0, minute: 0 }),
       Temporal.PlainTime.from({ hour: 4, minute: 0 }),
+      Temporal.Now.plainDateISO(),
     );
 
     expect(result.sortedTasks).toHaveLength(3);
     expect(result.queue).toHaveLength(0);
     expect(result.sortedTasks[0]).toMatchObject({
-      start: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
-      end: Temporal.PlainTime.from({ hour: 1, minute: 0 }),
+      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
     });
     expect(result.sortedTasks[1]).toMatchObject({
-      start: Temporal.PlainTime.from({ hour: 1, minute: 0 }),
-      end: Temporal.PlainTime.from({ hour: 2, minute: 0 }),
+      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
     });
     expect(result.sortedTasks[2]).toMatchObject({
-      start: Temporal.PlainTime.from({ hour: 2, minute: 0 }),
-      end: Temporal.PlainTime.from({ hour: 4, minute: 0 }),
+      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
     });
   });
 
@@ -80,19 +83,19 @@ describe("Assign task time", () => {
         isBusy: true,
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event<Temporal.PlainDateTime>
+      }) as Event<Temporal.PlainDateTime>,
     ];
-    const queuedTasks: Event[] = [
+    const queuedTasks: Event<null>[] = [
       taskFactory({
         id: "1",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
     ];
 
     const result = scheduleTasksInSlot(
@@ -100,32 +103,33 @@ describe("Assign task time", () => {
       busyEvents,
       Temporal.PlainTime.from({ hour: 0, minute: 0 }),
       Temporal.PlainTime.from({ hour: 3, minute: 0 }), // 180 mins
+      Temporal.Now.plainDateISO(),
     );
 
     expect(result.sortedTasks).toHaveLength(2);
     expect(result.sortedTasks[1]).toMatchObject({
-      start: Temporal.PlainTime.from({ hour: 2, minute: 0 }), // 120 mins
-      end: Temporal.PlainTime.from({ hour: 3, minute: 0 }), // 180 mins
+      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})), // 120 mins
+      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 3})), // 180 mins
     });
   });
 
   it("should return remaining tasks when slot is full", () => {
-    const queuedTasks: Event[] = [
+    const queuedTasks: Event<null>[] = [
       taskFactory({
         id: "1",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
       taskFactory({
         id: "2",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
       taskFactory({
         id: "3",
         duration: Temporal.Duration.from({ minutes: 60 }),
         slotId: "1",
-      }) as Event,
+      }) as Event<null>,
     ];
 
     const result = scheduleTasksInSlot(
@@ -133,6 +137,7 @@ describe("Assign task time", () => {
       [],
       Temporal.PlainTime.from({ hour: 0, minute: 0 }),
       Temporal.PlainTime.from({ hour: 2, minute: 0 }), // 120 mins
+      Temporal.Now.plainDateISO(),
     );
 
     expect(result.sortedTasks).toHaveLength(2);
@@ -146,6 +151,7 @@ describe("Assign task time", () => {
       [],
       Temporal.PlainTime.from({ hour: 0, minute: 0 }),
       Temporal.PlainTime.from({ hour: 1, minute: 40 }), // 100 mins
+      Temporal.Now.plainDateISO(),
     );
 
     expect(result.sortedTasks).toHaveLength(0);

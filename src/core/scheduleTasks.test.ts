@@ -4,8 +4,8 @@ import type { Event, TimeSlot } from "../types/types";
 import { scheduleTasks } from "./scheduleTasks";
 
 const eventFactory = (
-  event: Partial<Omit<Event, "type">> & Pick<Event, "type">,
-): Event => {
+  event: Partial<Omit<Event<null>, "type">> & Pick<Event<null>, "type">,
+): Event<null> => {
   return {
     id: "",
     name: "",
@@ -16,13 +16,11 @@ const eventFactory = (
     isDone: false,
     isSortable: false,
     isSorted: false,
-    duration: null,
+    duration: Temporal.Duration.from({ minutes: 0 }),
     weight: 1,
     slotId: "",
-    buffer: {
-      before: null,
-      after: null,
-    },
+    bufferBefore: Temporal.Duration.from({ minutes: 0 }),
+    bufferAfter: Temporal.Duration.from({ minutes: 0 }),
     startDate: null,
     dueDate: null,
     ...event,
@@ -45,7 +43,7 @@ describe("splitOverlappingSlots", () => {
       },
     ];
 
-    const mockTasks: Event[] = [
+    const mockTasks: Event<null>[] = [
       eventFactory({
         type: "task",
         id: "1",
@@ -62,7 +60,12 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
+    const result = scheduleTasks(
+      mockTasks,
+      [],
+      mockSlots,
+      Temporal.Now.plainDateISO(),
+    );
 
     expect(result).toMatchObject([
       {
@@ -103,7 +106,7 @@ describe("splitOverlappingSlots", () => {
       },
     ];
 
-    const mockTasks: Event[] = [
+    const mockTasks: Event<null>[] = [
       eventFactory({
         type: "task",
         id: "1",
@@ -120,7 +123,12 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
+    const result = scheduleTasks(
+      mockTasks,
+      [],
+      mockSlots,
+      Temporal.Now.plainDateISO(),
+    );
 
     expect(result).toMatchObject([
       {
@@ -167,7 +175,7 @@ describe("splitOverlappingSlots", () => {
       },
     ];
 
-    const mockTasks: Event[] = [
+    const mockTasks: Event<null>[] = [
       eventFactory({
         type: "task",
         id: "1",
@@ -191,7 +199,12 @@ describe("splitOverlappingSlots", () => {
       }),
     ];
 
-    const result = scheduleTasks(mockTasks, [], mockSlots, Temporal.Now.plainDateISO());
+    const result = scheduleTasks(
+      mockTasks,
+      [],
+      mockSlots,
+      Temporal.Now.plainDateISO(),
+    );
 
     expect(result).toMatchObject([
       {

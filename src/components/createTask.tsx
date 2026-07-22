@@ -86,7 +86,7 @@ const createTaskFromForm = async (data: FormData) => {
     notes: String(data.get("notes")),
     start: null,
     end: null,
-    isBusy: true,
+    isBusy: false,
     isDone: false,
     isSortable: true,
     isSorted: false,
@@ -112,8 +112,13 @@ const sortTasks = async () => {
     .toArray()
     .then((arr) => arr.map((e) => fromEventDbModel(e) as Event<null>));
 
+  /*
+    Using .filter is slow, should use .where instead but since isBusy: boolean it won't work
+    because of https://dexie.org/docs/Indexable-Type. Though it will be fairly easy to implement
+    by just changing it to a number on EventDbModel and using to... and from...
+  */
   const busyEvents = await db.events
-    .where({ isBusy: "true" })
+    .filter((e) => e.isBusy === true)
     .toArray()
     .then((arr) =>
       arr.map((e) => fromEventDbModel(e) as Event<Temporal.PlainDateTime>),
@@ -136,7 +141,7 @@ const sortTasks = async () => {
       key: e.id,
       changes: {
         start: e.start.toString(),
-        end: e.start.toString(),
+        end: e.end.toString(),
         isBusy: e.isBusy,
         isSorted: e.isSortable,
       },
@@ -149,13 +154,21 @@ const sortTasks = async () => {
     console.log("on update", e);
   }
 };
-// - [ ] I think theres something wrong in agenda? I should run the tests.
-// - Yep something is wrong, I got the same DateTime for both start and end.
-// - [ ] need to use the LiveQuery thing since when creating a new slot, its not
-// getting updated on react, resulting in needint to relaod.
-// - [x]  add startBy and dueBy default of today on the form.
-// - [x] TODO: make it now sort them (via agenda) when adding new tasks.
-// - Maybe a new sort button?
+/*
+- [x] I think theres something wrong in agenda? I should run the tests.
+- Yep something is wrong, I got the same DateTime for both start and end.
+
+- [ ] weights as of right now are redundant and doesn't do anything. This is because
+there are only ever 1 task being sorted. One solution is recalculating the already sorted task
+{isSortable: true, isSorted: true} along with the task to be sorted. 
+
+- [ ] need to use the LiveQuery thing since when creating a new slot, its not
+getting updated on react, resulting in needint to relaod.
+- [x]  add startBy and dueBy default of today on the form.
+- [x] TODO: make it now sort them (via agenda) when adding new tasks.
+- Maybe a new sort button?
+*/
+
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [slots, setSlots] = useState<TimeSlotDbModel[]>([]);

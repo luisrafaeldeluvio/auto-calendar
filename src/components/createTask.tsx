@@ -153,12 +153,18 @@ const sortTasks = async () => {
 // - Yep something is wrong, I got the same DateTime for both start and end.
 // - [ ] need to use the LiveQuery thing since when creating a new slot, its not
 // getting updated on react, resulting in needint to relaod.
-// - [ ]  add startBy and dueBy default of today on the form.
+// - [x]  add startBy and dueBy default of today on the form.
 // - [x] TODO: make it now sort them (via agenda) when adding new tasks.
 // - Maybe a new sort button?
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [slots, setSlots] = useState<TimeSlotDbModel[]>([]);
+  const [startDate, setStartDate] = useState(
+    Temporal.Now.plainDateISO().toString(),
+  );
+  const [dueDate, setDueDate] = useState(
+    Temporal.Now.plainDateISO().toString(),
+  );
 
   useEffect(() => {
     async function fn() {
@@ -236,9 +242,23 @@ export const CreateTaskButton = () => {
           </select>
 
           <label htmlFor="startDate">Can be started on</label>
-          <input type="date" name="startDate" id="startDate" required />
+          <input
+            type="date"
+            name="startDate"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+          />
           <label htmlFor="dueDate">Due by</label>
-          <input type="date" name="dueDate" id="dueDate" required />
+          <input
+            type="date"
+            name="dueDate"
+            id="dueDate"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            required
+          />
 
           <button type="submit">Create</button>
         </form>

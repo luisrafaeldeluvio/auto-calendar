@@ -108,7 +108,16 @@ const createTaskFromForm = async (data: FormData) => {
 };
 const sortTasks = async () => {
   const toSort = await db.events
-    .filter((e) => e.isSortable && !e.isSorted)
+  /*
+    - [ ] I should add a limit on the events to be sorted and busyEvents based on their start and due date.
+    The task should be within the agenda (1 week). We can do this by comparing start and date as strings.
+    "2026-07-23T06:55:00" > "2026-07-23T07:25:00" = false
+    "2026-08-23T06:55:00" > "2026-07-23T07:25:00" = true
+    Yes, we can compare dates even if they're string thanks to Lexicographic order.
+    - [ ] I need to work on the how the agenda range will work first before doing that.
+    Maybe set it to 1 week first.
+  */
+    .filter((e) => e.isSortable /*&& !e.isSorted*/)
     .toArray()
     .then((arr) => arr.map((e) => fromEventDbModel(e) as Event<null>));
 
@@ -118,7 +127,7 @@ const sortTasks = async () => {
     by just changing it to a number on EventDbModel and using to... and from...
   */
   const busyEvents = await db.events
-    .filter((e) => e.isBusy === true)
+    .filter((e) => e.isBusy === true && !e.isSortable)
     .toArray()
     .then((arr) =>
       arr.map((e) => fromEventDbModel(e) as Event<Temporal.PlainDateTime>),
@@ -158,10 +167,11 @@ const sortTasks = async () => {
 - [x] I think theres something wrong in agenda? I should run the tests.
 - Yep something is wrong, I got the same DateTime for both start and end.
 
-- [ ] weights as of right now are redundant and doesn't do anything. This is because
+- [x] weights as of right now are redundant and doesn't do anything. This is because
 there are only ever 1 task being sorted. One solution is recalculating the already sorted task
 {isSortable: true, isSorted: true} along with the task to be sorted. 
 
+- [ ] Display the events on the calendar
 - [ ] need to use the LiveQuery thing since when creating a new slot, its not
 getting updated on react, resulting in needint to relaod.
 - [x]  add startBy and dueBy default of today on the form.

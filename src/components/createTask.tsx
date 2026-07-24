@@ -8,6 +8,7 @@ import {
   fromEventDbModel,
   fromTimeSlotDbModel,
 } from "../db/serializeDataObject";
+import { useLiveQuery } from "dexie-react-hooks";
 
 const durationOptions = [
   {
@@ -108,7 +109,7 @@ const createTaskFromForm = async (data: FormData) => {
 };
 const sortTasks = async () => {
   const toSort = await db.events
-  /*
+    /*
     - [ ] I should add a limit on the events to be sorted and busyEvents based on their start and due date.
     The task should be within the agenda (1 week). We can do this by comparing start and date as strings.
     "2026-07-23T06:55:00" > "2026-07-23T07:25:00" = false
@@ -116,6 +117,11 @@ const sortTasks = async () => {
     Yes, we can compare dates even if they're string thanks to Lexicographic order.
     - [ ] I need to work on the how the agenda range will work first before doing that.
     Maybe set it to 1 week first.
+    - [ ] I think this introduced a new bug on left over tasks. I have a task { weight: 0}
+    that was previously sorted. I added a new task, in theory the previous task will not be sorted.
+    Instead the task's start and end was pushed to the beggining. Not exactly a bug, more of a 
+    feature oversight since the algorithm now also handle tasks that was already sorted. To handle this, 
+    maybe I can set the start and date of tasks in queue to null in scheduleTasksInSlot.
   */
     .filter((e) => e.isSortable /*&& !e.isSorted*/)
     .toArray()
@@ -172,7 +178,7 @@ there are only ever 1 task being sorted. One solution is recalculating the alrea
 {isSortable: true, isSorted: true} along with the task to be sorted. 
 
 - [ ] Display the events on the calendar
-- [ ] need to use the LiveQuery thing since when creating a new slot, its not
+- [x] need to use the LiveQuery thing since when creating a new slot, its not
 getting updated on react, resulting in needint to relaod.
 - [x]  add startBy and dueBy default of today on the form.
 - [x] TODO: make it now sort them (via agenda) when adding new tasks.
@@ -181,7 +187,7 @@ getting updated on react, resulting in needint to relaod.
 
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [slots, setSlots] = useState<TimeSlotDbModel[]>([]);
+  const slots = useLiveQuery(getAllTimeSlots);
   const [startDate, setStartDate] = useState(
     Temporal.Now.plainDateISO().toString(),
   );
@@ -189,23 +195,8 @@ export const CreateTaskButton = () => {
     Temporal.Now.plainDateISO().toString(),
   );
 
-  useEffect(() => {
-    async function fn() {
-      const s = await getAllTimeSlots();
-      if (!s.ok) {
-        alert(s.error);
-        return;
-      }
-      setSlots(s.data);
-    }
-
-    fn();
-  }, []);
-
   const toggleDialog = () => {
-    if (dialogRef.current) {
-      dialogRef.current.togglePopover();
-    }
+    if (dialogRef.current) dialogRef.current.togglePopover();
   };
 
   return (
@@ -257,11 +248,13 @@ export const CreateTaskButton = () => {
 
           <label htmlFor="timeslots">timeslot</label>
           <select name="timeslots" id="timeslots" required>
-            {slots?.map((s) => (
-              <option value={s.id} key={s.id}>
-                {s.name}
-              </option>
-            ))}
+            {slots && slots.ok
+              ? slots.data.map((s) => (
+                  <option value={s.id} key={s.id}>
+                    {s.name}
+                  </option>
+                ))
+              : null}
           </select>
 
           <label htmlFor="startDate">Can be started on</label>

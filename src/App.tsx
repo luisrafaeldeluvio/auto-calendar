@@ -122,19 +122,9 @@ const localizer = dateFnsLocalizer({
 */
 
 function App() {
-  const baseDate = Temporal.Now.plainDateISO().toPlainDateTime({
-    hour: 0,
-    minute: 0,
-  });
-  const start = baseDate.subtract({ days: baseDate.dayOfWeek - 1 });
-  const end = baseDate.add({
-    days: 7 - baseDate.dayOfWeek,
-    hours: 23,
-    minutes: 59,
-  });
-  const [date, setDate] = useState<Date>(
-    new Date(Temporal.Now.plainDateISO().add({ days: 1 }).toString()),
-  );
+  const [currentDate, setCurrentDate] = useState(Temporal.Now.plainDateISO());
+  const { start, end } = getWeekBounds(currentDate);
+
   const events = useLiveQuery(() =>
     db.events.filter((e) =>
       e.start

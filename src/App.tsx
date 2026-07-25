@@ -21,13 +21,13 @@ const localizer = dateFnsLocalizer({
 
 function App() {
   const [currentDate, setCurrentDate] = useState(Temporal.Now.plainDateISO());
-  const { start, end } = getWeekBounds(currentDate);
+  const { startOfWeek, endOfWeek } = getWeekBounds(currentDate);
 
   const events = useLiveQuery(() =>
     db.events
       .filter((e) =>
         e.start
-          ? e.start >= start.toString() && e.start <= end.toString()
+          ? e.start >= startOfWeek.toString() && e.start <= endOfWeek.toString()
           : false,
       )
       .toArray(),

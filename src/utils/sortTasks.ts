@@ -2,8 +2,12 @@ import { Temporal } from "@js-temporal/polyfill";
 import { agenda } from "../core/agenda";
 import { db } from "../db/db";
 import { getAllTimeSlots } from "../db/helpers";
-import { fromEventDbModel, fromTimeSlotDbModel } from "../db/serializeDataObject";
+import {
+  fromEventDbModel,
+  fromTimeSlotDbModel,
+} from "../db/serializeDataObject";
 import { type Event } from "../types/types";
+import { getWeekBounds } from "./getWeekBounds";
 
 export const sortTasks = async () => {
   const toSort = await db.events
@@ -41,16 +45,15 @@ export const sortTasks = async () => {
     r.ok ? r.data.map((s) => fromTimeSlotDbModel(s)) : [],
   );
 
+  /* 
+    FUTURE NOTE:
+    - [ ] This should have an options on how many weeks it should get (i.e. 2 weeks)
+    for configurations.
+  */
+  const { endOfWeek } = getWeekBounds();
   const ag = agenda(
-    // update this to start and end in App.tsx
-    // We have a problem, the tasks still get assigned to past days,
-    // when tasks should be anchored to the current day.
-    // so to solve this, we can maybe add a max to the start, like
-    // max(start, dateToday)
-    // maybe i need to have a dedicated file for those stuff like start and date.
-    // arent thhey called global state or something??   
-    Temporal.PlainDate.from({ month: 7, day: 19, year: 2026 }),
-    Temporal.PlainDate.from({ month: 7, day: 26, year: 2026 }),
+    Temporal.Now.plainDateISO(),
+    endOfWeek.toPlainDate(),
     toSort ?? [],
     busyEvents ?? [],
     slots,

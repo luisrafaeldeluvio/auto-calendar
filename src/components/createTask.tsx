@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { type TimeSlotDbModel, type Weight, type Event } from "../types/types";
+import {  useRef, useState } from "react";
+import { type Weight, type Event } from "../types/types";
 import { addEvent, getAllTimeSlots } from "../db/helpers";
 import { Temporal } from "@js-temporal/polyfill";
-import { agenda } from "../core/agenda";
-import { db } from "../db/db";
-import {
-  fromEventDbModel,
-  fromTimeSlotDbModel,
-} from "../db/serializeDataObject";
 import { useLiveQuery } from "dexie-react-hooks";
 import { sortTasks } from "../utils/sortTasks";
 
@@ -55,26 +49,15 @@ const createTaskFromForm = async (data: FormData) => {
     startDate: Temporal.PlainDateTime.from(String(data.get("startDate"))),
     dueDate: Temporal.PlainDateTime.from(String(data.get("dueDate"))),
   };
-  const x = await addEvent(task);
+  const eventResponse = await addEvent(task);
 
-  if (!x.ok) alert(x.error);
+  if (!eventResponse.ok) {
+    alert(eventResponse.error);
+    return;
+  } 
+  
   sortTasks();
 };
-/*
-- [x] I think theres something wrong in agenda? I should run the tests.
-- Yep something is wrong, I got the same DateTime for both start and end.
-
-- [x] weights as of right now are redundant and doesn't do anything. This is because
-there are only ever 1 task being sorted. One solution is recalculating the already sorted task
-{isSortable: true, isSorted: true} along with the task to be sorted. 
-
-- [ ] Display the events on the calendar
-- [x] need to use the LiveQuery thing since when creating a new slot, its not
-getting updated on react, resulting in needint to relaod.
-- [x]  add startBy and dueBy default of today on the form.
-- [x] TODO: make it now sort them (via agenda) when adding new tasks.
-- Maybe a new sort button?
-*/
 
 export const CreateTaskButton = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);

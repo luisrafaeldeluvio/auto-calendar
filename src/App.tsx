@@ -152,8 +152,8 @@ function App() {
           <Calendar
             events={events ? events?.map((e) => ({
               title: e.name,
-              start: new Date(e.start!),
-              end: new Date(e.end!)
+              start: new Date(e.start),
+              end: new Date(e.end)
             })) : undefined}
             defaultView={Views.WEEK}
             timeslots={3}

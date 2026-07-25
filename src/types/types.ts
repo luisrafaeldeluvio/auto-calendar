@@ -29,8 +29,8 @@ export interface Event<T extends EventInterval> {
   name: string;
   notes: string;
 
-  start:  T;
-  end:  T;
+  start: T;
+  end: T;
 
   isBusy: boolean;
   isDone: boolean;
@@ -48,16 +48,14 @@ export interface Event<T extends EventInterval> {
   dueDate: Temporal.PlainDateTime | null;
 }
 
-
 export interface EventDbModel {
   type: "event" | "task";
   id: string;
   name: string;
   notes: string;
 
-  // why can they be null? maybe we can use a generic here?
-  start: string | null; // date-time in the RFC 9557 format
-  end: string | null; // date-time in the RFC 9557 format
+  start: string; // date-time in the RFC 9557 format
+  end: string; // date-time in the RFC 9557 format
 
   isBusy: boolean;
   isDone: boolean;
@@ -71,8 +69,8 @@ export interface EventDbModel {
   bufferBefore: string; // duration in the ISO 8601 format
   bufferAfter: string; // duration in the ISO 8601 format
 
-  startDate: string | null; //  date-time in the RFC 9557 format
-  dueDate: string | null; //  date-time in the RFC 9557 format
+  startDate: string; //  date-time in the RFC 9557 format
+  dueDate: string; //  date-time in the RFC 9557 format
 }
 
 export interface TasksSchedule {

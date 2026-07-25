@@ -22,13 +22,13 @@ export const toEventDbModel = (
   event: Event<Temporal.PlainDateTime | null>,
 ): EventDbModel => ({
   ...event,
-  start: event.start?.toString() ?? null,
-  end: event.end?.toString() ?? null,
+  start: event.start?.toString() ?? "",
+  end: event.end?.toString() ?? "",
   duration: event.duration?.toString(),
   bufferBefore: event.bufferBefore?.toString(),
   bufferAfter: event.bufferAfter?.toString(),
-  startDate: event.startDate?.toString() ?? null,
-  dueDate: event.dueDate?.toString() ?? null,
+  startDate: event.startDate?.toString() ?? "",
+  dueDate: event.dueDate?.toString() ?? "",
 });
 
 export const fromEventDbModel = (

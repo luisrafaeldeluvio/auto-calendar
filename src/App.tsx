@@ -4,14 +4,16 @@ import { enUS } from "date-fns/locale/en-US";
 import { agenda } from "./core/agenda";
 const locales = { "en-US": enUS };
 
-import {CreateTaskButton} from "./components/createTask"
+import { CreateTaskButton } from "./components/createTask";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import { useState } from "react";
 import type { Event, TimeSlot } from "./types/types";
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal, toTemporalInstant } from "@js-temporal/polyfill";
 import { CreateTimeslotButton } from "./components/CreateTimeslots";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "./db/db";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -114,12 +116,32 @@ const localizer = dateFnsLocalizer({
 //   : [];
 
 // console.log(processedDate);
+/*
+- [ ] maybe we should add a function that gets all the events in 1 week and display them here.
+- [ ] to do that, i need to create something for managing the agenda's range.
+*/
 
 function App() {
+  const baseDate = Temporal.Now.plainDateISO().toPlainDateTime({
+    hour: 0,
+    minute: 0,
+  });
+  const start = baseDate.subtract({ days: baseDate.dayOfWeek - 1 });
+  const end = baseDate.add({
+    days: 7 - baseDate.dayOfWeek,
+    hours: 23,
+    minutes: 59,
+  });
   const [date, setDate] = useState<Date>(
     new Date(Temporal.Now.plainDateISO().add({ days: 1 }).toString()),
   );
-
+  const events = useLiveQuery(() =>
+    db.events.filter((e) =>
+      e.start
+        ? e.start >= start.toString() && e.start <= end.toString()
+        : false,
+    ).toArray()
+  );
   return (
     <>
       <div>
@@ -128,7 +150,11 @@ function App() {
         <div>
           <h1>calendar1</h1>
           <Calendar
-            // events={processedDate}
+            events={events ? events?.map((e) => ({
+              title: e.name,
+              start: new Date(e.start!),
+              end: new Date(e.end!)
+            })) : undefined}
             defaultView={Views.WEEK}
             timeslots={3}
             step={5}

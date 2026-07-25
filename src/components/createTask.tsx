@@ -11,73 +11,25 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 
 const durationOptions = [
-  {
-    text: "5 minutes",
-    duration: 5,
-  },
-  {
-    text: "10 minutes",
-    duration: 10,
-  },
-  {
-    text: "15 minutes",
-    duration: 15,
-  },
-  {
-    text: "20 minutes",
-    duration: 20,
-  },
-  {
-    text: "25 minutes",
-    duration: 25,
-  },
-  {
-    text: "30 minutes",
-    duration: 30,
-  },
-  {
-    text: "35 minutes",
-    duration: 35,
-  },
-  {
-    text: "40 minutes",
-    duration: 40,
-  },
-  {
-    text: "45 minutes",
-    duration: 45,
-  },
-  {
-    text: "50 minutes",
-    duration: 50,
-  },
-  {
-    text: "55 minutes",
-    duration: 55,
-  },
-  {
-    text: "60 minutes",
-    duration: 60,
-  },
+  { text: "5 minutes", duration: 5 },
+  { text: "10 minutes", duration: 10 },
+  { text: "15 minutes", duration: 15 },
+  { text: "20 minutes", duration: 20 },
+  { text: "25 minutes", duration: 25 },
+  { text: "30 minutes", duration: 30 },
+  { text: "35 minutes", duration: 35 },
+  { text: "40 minutes", duration: 40 },
+  { text: "45 minutes", duration: 45 },
+  { text: "50 minutes", duration: 50 },
+  { text: "55 minutes", duration: 55 },
+  { text: "60 minutes", duration: 60 },
 ];
 
 const weightOptions = [
-  {
-    text: "Low",
-    weight: 0,
-  },
-  {
-    text: "Normal",
-    weight: 1,
-  },
-  {
-    text: "High",
-    weight: 2,
-  },
-  {
-    text: "Do ASAP",
-    weight: 3,
-  },
+  { text: "Low", weight: 0 },
+  { text: "Normal", weight: 1 },
+  { text: "High", weight: 2 },
+  { text: "Do ASAP", weight: 3 },
 ];
 
 const createTaskFromForm = async (data: FormData) => {

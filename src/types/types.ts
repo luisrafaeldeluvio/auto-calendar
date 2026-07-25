@@ -55,6 +55,7 @@ export interface EventDbModel {
   name: string;
   notes: string;
 
+  // why can they be null? maybe we can use a generic here?
   start: string | null; // date-time in the RFC 9557 format
   end: string | null; // date-time in the RFC 9557 format
 

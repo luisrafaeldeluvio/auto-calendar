@@ -9,6 +9,7 @@ import { CreateTimeslotButton } from "./components/CreateTimeslots";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db/db";
 import { getWeekBounds } from "./utils/getWeekBounds";
+import { CreateEventButton } from "./components/createEvent";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -18,6 +19,12 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
+
+/*
+  - [ ] button for creating events
+  - [ ] pop up modal that shows unsorted tasks
+  - [ ] buttons for calendar navigation
+*/
 
 function App() {
   const [currentDate, setCurrentDate] = useState(Temporal.Now.plainDateISO());
@@ -36,6 +43,7 @@ function App() {
     <>
       <div>
         <CreateTaskButton></CreateTaskButton>
+        <CreateEventButton></CreateEventButton>
         <CreateTimeslotButton></CreateTimeslotButton>
         <div>
           <h1>calendar1</h1>

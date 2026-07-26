@@ -26,8 +26,19 @@ export const sortTasks = async () => {
         e.dueDate <= endOfWeek.toString(),
     )
     .toArray()
-    .then((arr) => arr.map((e) => fromEventDbModel(e) as Event<null>));
-
+    .then((arr) =>
+      arr.map(
+        (e) =>
+          fromEventDbModel({
+            // maybe i should make this auto happenin scheduleTasksInSlot???
+            ...e,
+            start: "",
+            end: "",
+            isSorted: false,
+            isBusy: false
+          }) as Event<null>,
+      ),
+    );
   /*
     Using .filter is slow, should use .where instead but since isBusy: boolean it won't work
     because of https://dexie.org/docs/Indexable-Type. Though it will be fairly easy to implement
@@ -71,6 +82,17 @@ export const sortTasks = async () => {
 
   try {
     db.events.bulkUpdate(toUpdate);
+    db.events.bulkUpdate(
+      ag.queue.map((e) => ({
+        key: e.id,
+        changes: {
+          start: "",
+          end: "",
+          isBusy: e.isBusy,
+          isSorted: e.isSorted,
+        },
+      })),
+    );
   } catch (e) {
     console.log("on update", e);
   }

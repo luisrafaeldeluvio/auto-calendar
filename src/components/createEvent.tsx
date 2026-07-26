@@ -8,17 +8,17 @@ const createEventFromForm = async (data: FormData) => {
   const start = Temporal.PlainDateTime.from(String(data.get("start")));
   const end = Temporal.PlainDateTime.from(String(data.get("end")));
 
-  const task: Omit<Event<Temporal.PlainDateTime>, "id"> = {
-    type: "task",
+  const event: Omit<Event<Temporal.PlainDateTime>, "id"> = {
+    type: "event",
     name: String(data.get("name")),
     notes: String(data.get("notes")),
     start: start,
     end: end,
-    isBusy: false,
+    isBusy: true,
     isDone: false,
-    isSortable: true,
+    isSortable: false,
     isSorted: false,
-    duration: start.since(end),
+    duration: end.since(start),
     weight: 1,
     slotId: String(data.get("timeslots")),
     bufferBefore: Temporal.Duration.from({ hours: 0 }),
@@ -26,8 +26,7 @@ const createEventFromForm = async (data: FormData) => {
     startDate: null,
     dueDate: null,
   };
-  const eventResponse = await addEvent(task);
-
+  const eventResponse = await addEvent(event);
   if (!eventResponse.ok) {
     alert(eventResponse.error);
     return;

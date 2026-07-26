@@ -21,7 +21,7 @@ const localizer = dateFnsLocalizer({
 });
 
 /*
-  - [ ] button for creating events
+  - [x] button for creating events
   - [ ] pop up modal that shows unsorted tasks
   - [ ] buttons for calendar navigation
 */

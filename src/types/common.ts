@@ -1,5 +1,4 @@
-import { Temporal } from "@js-temporal/polyfill";
-import { type Event } from "./models/calendarItem";
+import type { CalendarTask } from "./models/calendarItem";
 
 export type Result<T, E = string> =
   | { ok: true; data: T }
@@ -10,6 +9,6 @@ export type SlotError = "INVALID_RANGE" | "TIME_EXCEEDED";
 export type Weight = 1 | 2 | 3 | 4;
 
 export interface TasksSchedule {
-  sortedTasks: Event<Temporal.PlainDateTime>[];
-  queue: Event<null>[];
+  sortedTasks: CalendarTask[];
+  queue: CalendarTask<null>[];
 }

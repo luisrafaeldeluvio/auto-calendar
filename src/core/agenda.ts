@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { Event } from "../types/models/calendarItem";
+import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
 import type { TimeSlot } from "../types/models/timeslot";
 import { scheduleTasks } from "./scheduleTasks";
 
@@ -20,15 +20,15 @@ export const eachDayOfInterval = (
 export const agenda = (
   start: Temporal.PlainDate,
   end: Temporal.PlainDate,
-  allTasks: Event<null>[],
-  busyEvents: Event<Temporal.PlainDateTime>[],
+  allTasks: CalendarTask<null>[],
+  busyEvents: CalendarItem[],
   timeSlots: TimeSlot[],
 ): TasksSchedule => {
   const scheduleTasksInAgenda = (
     dates: Temporal.PlainDate[],
-    allTasks: Event<null>[],
+    allTasks: CalendarTask<null>[],
     timeSlots: TimeSlot[],
-    scheduled: Event<Temporal.PlainDateTime>[] = [],
+    scheduled: CalendarTask[] = [],
   ): TasksSchedule => {
     const [date, ...rest] = dates;
     if (!date)
@@ -53,7 +53,7 @@ export const agenda = (
     );
 
     // SEPERATION OF CONCERN I SHOULD NOT FLATTEN IT!!!!
-    const flatten = scheduleTasksInDate.reduce<Event<Temporal.PlainDateTime>[]>(
+    const flatten = scheduleTasksInDate.reduce<CalendarTask[]>(
       (acc, curr) => [...acc, ...curr.sortedTasks],
       [],
     );

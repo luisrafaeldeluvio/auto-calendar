@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { Event } from "../types/models/calendarItem";
+import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
 import type { TimeSlot } from "../types/models/timeslot";
 import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
@@ -10,13 +10,13 @@ import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 // recalculating the whole day, we have the option to only
 // calculate a later part of the day.
 export const scheduleTasks = (
-  queuedTasks: Event<null>[],
-  busyEvents: Event<Temporal.PlainDateTime>[],
+  queuedTasks: CalendarTask<null>[],
+  busyEvents: CalendarItem[],
   timeSlots: TimeSlot[],
   date: Temporal.PlainDate,
 ): TasksSchedule[] => {
   const scheduleTasksRecursion = (
-    busyEvents: Event<Temporal.PlainDateTime>[],
+    busyEvents: CalendarItem[],
     timeSlots: TimeSlot[],
     sortedTasks: TasksSchedule[] = [],
   ) => {

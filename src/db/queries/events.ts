@@ -1,11 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { Result } from "../../types/common";
-import type { Event } from "../../types/models/calendarItem";
+import type { CalendarItem } from "../../types/models/calendarItem";
 import { db } from "../db";
 import { toEventDbModel } from "../modelMappers";
 
 export const addEvent = async (
-  event: Omit<Event<Temporal.PlainDateTime | null>, "id">,
+  event: Omit<CalendarItem, "id">,
 ): Promise<Result<string, "INVALID_DATE_RANGE" | string>> => {
   if (
     event.startDate &&
@@ -14,7 +14,7 @@ export const addEvent = async (
   )
     return { ok: false, error: "INVALID_DATE_RANGE" };
 
-  const newTask: Event<Temporal.PlainDateTime | null> = {
+  const newTask: CalendarItem = {
     ...event,
     id: crypto.randomUUID(),
   };

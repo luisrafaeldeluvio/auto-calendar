@@ -1,10 +1,10 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { Event } from "../types/models/calendarItem";
+import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
 
 export const scheduleTasksInSlot = (
-  queuedTasks: Event<null>[],
-  activeEvents: Event<Temporal.PlainDateTime>[],
+  queuedTasks: CalendarTask<null>[],
+  activeEvents: CalendarItem[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
   date: Temporal.PlainDate,
@@ -13,9 +13,9 @@ export const scheduleTasksInSlot = (
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
 
   const schedule = (
-    tasksToProcess: Event<null>[],
+    tasksToProcess: CalendarTask<null>[],
     currentTime: Temporal.PlainTime,
-    sortedTasks: Event<Temporal.PlainDateTime>[],
+    sortedTasks: CalendarTask[],
   ): TasksSchedule => {
     const [task, ...remainingTasks] = tasksToProcess;
     if (!task) return { sortedTasks: sortedTasks, queue: [] };
@@ -25,14 +25,13 @@ export const scheduleTasksInSlot = (
       task.duration ?? { minutes: 0 },
     );
 
-    const overlappingEvent: Event<Temporal.PlainDateTime> | undefined =
-      busyEvents.find(
-        (e) =>
-          e.start &&
-          e.end &&
-          Temporal.PlainTime.compare(e.end, taskStartTime) === 1 &&
-          Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
-      );
+    const overlappingEvent: CalendarItem | undefined = busyEvents.find(
+      (e) =>
+        e.start &&
+        e.end &&
+        Temporal.PlainTime.compare(e.end, taskStartTime) === 1 &&
+        Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
+    );
 
     if (overlappingEvent && overlappingEvent.end)
       return schedule(
@@ -51,7 +50,7 @@ export const scheduleTasksInSlot = (
       };
     }
 
-    const newTask: Event<Temporal.PlainDateTime> = {
+    const newTask: CalendarTask = {
       ...task,
       start: date.toPlainDateTime(taskStartTime),
       end: date.toPlainDateTime(taskEndTime),

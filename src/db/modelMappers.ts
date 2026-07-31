@@ -84,3 +84,16 @@ export const fromEventDbModel = (
   };
 };
 
+export const bulkFromEventDbModel = (
+  event: EventDbModel[],
+): Result<CalendarItem[], FromEventDbModelError> => {
+  const result: CalendarItem[] = [];
+
+  for (const item of event) {
+    const x = fromEventDbModel(item);
+    if (!x.ok) return { ok: false, error: x.error };
+    result.push(x.data);
+  }
+
+  return { ok: true, data: result };
+};

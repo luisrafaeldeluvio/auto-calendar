@@ -5,7 +5,7 @@ import { getAllTimeSlots } from "../db/helpers";
 import {
   fromEventDbModel,
   fromTimeSlotDbModel,
-} from "../db/serializeDataObject";
+} from "../db/modelMappers";
 import { type Event } from "../types/common";
 import { getWeekBounds } from "./getWeekBounds";
 

@@ -1,15 +1,10 @@
+import type { Result, SlotError } from "../../types/common";
+import type { TimeSlot } from "../../types/models/timeslot";
+import { db } from "../db";
+import { toTimeSlotDbModel } from "../modelMappers";
+import type { TimeSlotDbModel } from "../types";
 import { Temporal } from "@js-temporal/polyfill";
-import type {
-  Result,
-  SlotError,
-} from "../types/common"
-import type {Event} from "../types/models/calendarItem"
-import type {TimeSlot} from "../types/models/timeslot"
-import type { TimeSlotDbModel } from "./types";
-import { db } from "./db";
-import { toEventDbModel, toTimeSlotDbModel } from "./serializeDataObject";
 
-// Timeslots
 /**
  * Validates a slot against existing slots for range boundaries and duration
  *
@@ -40,7 +35,7 @@ export const addTimeSlot = async (
     return { ok: true, data: newSlot.id };
   } catch (error) {
     return { ok: false, error: String(error) };
-  } 
+  }
 };
 
 export const getAllTimeSlots = async (): Promise<
@@ -49,29 +44,6 @@ export const getAllTimeSlots = async (): Promise<
   try {
     const timeslots = await db.timeslots.toArray();
     return { ok: true, data: timeslots };
-  } catch (error) {
-    return { ok: false, error: String(error) };
-  }
-};
-
-export const addEvent = async (
-  event: Omit<Event<Temporal.PlainDateTime | null>, "id">,
-): Promise<Result<string, "INVALID_DATE_RANGE" | string>> => {
-  if (
-    event.startDate &&
-    event.dueDate &&
-    Temporal.PlainDateTime.compare(event.startDate, event.dueDate) === 1
-  )
-    return { ok: false, error: "INVALID_DATE_RANGE" };
-
-  const newTask: Event<Temporal.PlainDateTime | null> = {
-    ...event,
-    id: crypto.randomUUID(),
-  };
-
-  try {
-    await db.events.add(toEventDbModel(newTask));
-    return { ok: true, data: newTask.id };
   } catch (error) {
     return { ok: false, error: String(error) };
   }

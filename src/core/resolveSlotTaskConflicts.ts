@@ -1,6 +1,10 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
+import type {
+  CalendarItem,
+  CalendarTask,
+  CalendarTaskUnscheduled,
+} from "../types/models/calendarItem";
 import type { TimeSlot } from "../types/models/timeslot";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 
@@ -8,7 +12,7 @@ const resolveConflictsByWeight = (
   timeslot: TimeSlot,
   tasks: CalendarTask[],
   result: CalendarTask[] = [],
-  queue: CalendarTask<null>[] = [],
+  queue: CalendarTaskUnscheduled[] = [],
 ): TasksSchedule => {
   const [curr, ...rest] = tasks;
   if (!curr)
@@ -44,7 +48,7 @@ const resolveConflictsByWeight = (
 export const resolveSlotTaskConflicts = (
   timeslotA: TimeSlot,
   timeslotB: TimeSlot,
-  tasks: CalendarTask<null>[],
+  tasks: CalendarTaskUnscheduled[],
   busyEvents: CalendarItem[],
   date: Temporal.PlainDate,
 ): TasksSchedule => {

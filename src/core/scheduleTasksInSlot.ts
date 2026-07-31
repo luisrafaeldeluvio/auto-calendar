@@ -1,9 +1,9 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
+import type { CalendarItem, CalendarTask, CalendarTaskUnscheduled } from "../types/models/calendarItem";
 
 export const scheduleTasksInSlot = (
-  queuedTasks: CalendarTask<null>[],
+  queuedTasks: CalendarTaskUnscheduled[],
   activeEvents: CalendarItem[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
@@ -13,7 +13,7 @@ export const scheduleTasksInSlot = (
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
 
   const schedule = (
-    tasksToProcess: CalendarTask<null>[],
+    tasksToProcess: CalendarTaskUnscheduled[],
     currentTime: Temporal.PlainTime,
     sortedTasks: CalendarTask[],
   ): TasksSchedule => {

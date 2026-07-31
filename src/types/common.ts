@@ -1,4 +1,4 @@
-import type { CalendarTask } from "./models/calendarItem";
+import type { CalendarTask, CalendarTaskUnscheduled } from "./models/calendarItem";
 
 export type Result<T, E = string> =
   | { ok: true; data: T }
@@ -10,5 +10,5 @@ export type Weight = 1 | 2 | 3 | 4;
 
 export interface TasksSchedule {
   sortedTasks: CalendarTask[];
-  queue: CalendarTask<null>[];
+  queue: CalendarTaskUnscheduled[];
 }

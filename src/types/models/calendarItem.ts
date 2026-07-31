@@ -28,12 +28,16 @@ export interface CalendarEvent extends BaseItem {
   end: Temporal.PlainDateTime;
 }
 
-export interface CalendarTask<
-  T extends null | Temporal.PlainDateTime = Temporal.PlainDateTime,
-> extends BaseItem {
+export interface CalendarTask extends BaseItem {
   type: "task";
-  start: T;
-  end: T;
+  start: Temporal.PlainDateTime;
+  end: Temporal.PlainDateTime;
+}
+
+export interface CalendarTaskUnscheduled extends BaseItem {
+  type: "task";
+  start: null;
+  end: null;
 }
 
 export type CalendarItem = CalendarEvent | CalendarTask;

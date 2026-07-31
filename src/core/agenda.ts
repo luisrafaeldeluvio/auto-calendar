@@ -1,6 +1,10 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { TasksSchedule } from "../types/common";
-import type { CalendarItem, CalendarTask } from "../types/models/calendarItem";
+import type {
+  CalendarItem,
+  CalendarTask,
+  CalendarTaskUnscheduled,
+} from "../types/models/calendarItem";
 import type { TimeSlot } from "../types/models/timeslot";
 import { scheduleTasks } from "./scheduleTasks";
 
@@ -20,13 +24,13 @@ export const eachDayOfInterval = (
 export const agenda = (
   start: Temporal.PlainDate,
   end: Temporal.PlainDate,
-  allTasks: CalendarTask<null>[],
+  allTasks: CalendarTaskUnscheduled[],
   busyEvents: CalendarItem[],
   timeSlots: TimeSlot[],
 ): TasksSchedule => {
   const scheduleTasksInAgenda = (
     dates: Temporal.PlainDate[],
-    allTasks: CalendarTask<null>[],
+    allTasks: CalendarTaskUnscheduled[],
     timeSlots: TimeSlot[],
     scheduled: CalendarTask[] = [],
   ): TasksSchedule => {

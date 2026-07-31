@@ -1,12 +1,13 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule } from "../types/types";
+import type { TasksSchedule } from "../types/common";
+import type { Event } from "../types/models/calendarItem";
 
 export const scheduleTasksInSlot = (
   queuedTasks: Event<null>[],
   activeEvents: Event<Temporal.PlainDateTime>[],
   slotStartTime: Temporal.PlainTime,
   slotEndTime: Temporal.PlainTime,
-  date: Temporal.PlainDate
+  date: Temporal.PlainDate,
 ) => {
   const busyEvents = activeEvents.filter((e) => e.isBusy);
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
@@ -24,16 +25,21 @@ export const scheduleTasksInSlot = (
       task.duration ?? { minutes: 0 },
     );
 
-    const overlappingEvent: Event<Temporal.PlainDateTime> | undefined = busyEvents.find(
-      (e) =>
-        e.start &&
-        e.end &&
-        Temporal.PlainTime.compare(e.end, taskStartTime) === 1 &&
-        Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
-    );
+    const overlappingEvent: Event<Temporal.PlainDateTime> | undefined =
+      busyEvents.find(
+        (e) =>
+          e.start &&
+          e.end &&
+          Temporal.PlainTime.compare(e.end, taskStartTime) === 1 &&
+          Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
+      );
 
     if (overlappingEvent && overlappingEvent.end)
-      return schedule(tasksToProcess, Temporal.PlainTime.from(overlappingEvent.end), [...sortedTasks]);
+      return schedule(
+        tasksToProcess,
+        Temporal.PlainTime.from(overlappingEvent.end),
+        [...sortedTasks],
+      );
 
     const isSlotFull =
       Temporal.PlainTime.compare(taskEndTime, slotEndTime) === 1;

@@ -1,6 +1,8 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule, TimeSlot } from "../types/types";
-import { scheduleTasksInSlot, } from "./scheduleTasksInSlot";
+import type { TasksSchedule } from "../types/common";
+import type { Event } from "../types/models/calendarItem";
+import type { TimeSlot } from "../types/models/timeslot";
+import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 
 const resolveConflictsByWeight = (
   timeslot: TimeSlot,
@@ -44,21 +46,21 @@ export const resolveSlotTaskConflicts = (
   timeslotB: TimeSlot,
   tasks: Event<null>[],
   busyEvents: Event<Temporal.PlainDateTime>[],
-  date: Temporal.PlainDate
+  date: Temporal.PlainDate,
 ): TasksSchedule => {
   const assignedTasksA = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotA.id),
     busyEvents,
     timeslotA.start,
     timeslotA.end,
-    date
+    date,
   );
   const assignedTasksB = scheduleTasksInSlot(
     tasks.filter((t) => t.slotId === timeslotB.id),
     busyEvents,
     timeslotA.start,
     timeslotB.end,
-    date
+    date,
   );
 
   const result = resolveConflictsByWeight(timeslotA, [

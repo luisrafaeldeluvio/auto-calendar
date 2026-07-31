@@ -1,5 +1,6 @@
-import {  useRef, useState } from "react";
-import { type Weight, type Event } from "../types/types";
+import { useRef, useState } from "react";
+import { type Weight } from "../types/common";
+import { type Event } from "../types/models/calendarItem";
 import { addEvent, getAllTimeSlots } from "../db/helpers";
 import { Temporal } from "@js-temporal/polyfill";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -54,8 +55,8 @@ const createTaskFromForm = async (data: FormData) => {
   if (!eventResponse.ok) {
     alert(eventResponse.error);
     return;
-  } 
-  
+  }
+
   sortTasks();
 };
 

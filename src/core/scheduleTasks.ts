@@ -1,5 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule, TimeSlot } from "../types/types";
+import type { TasksSchedule } from "../types/common";
+import type { Event } from "../types/models/calendarItem";
+import type { TimeSlot } from "../types/models/timeslot";
 import { resolveSlotTaskConflicts } from "./resolveSlotTaskConflicts";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
 //per day palang ito
@@ -27,19 +29,28 @@ export const scheduleTasks = (
       Temporal.PlainTime.compare(nextSlot.start, currentSlot.end) === -1;
 
     const sorted: TasksSchedule = areSlotsOverlapping
-      ? resolveSlotTaskConflicts(currentSlot, nextSlot, queuedTasks, busyEvents,date)
+      ? resolveSlotTaskConflicts(
+          currentSlot,
+          nextSlot,
+          queuedTasks,
+          busyEvents,
+          date,
+        )
       : scheduleTasksInSlot(
           tasks,
           busyEvents,
           currentSlot.start,
           currentSlot.end,
-          date
+          date,
         );
 
     return scheduleTasksRecursion(
       [...busyEvents, ...sorted.sortedTasks],
       [...(nextSlot ? [nextSlot] : []), ...slots],
-      [...sortedTasks, { sortedTasks: sorted.sortedTasks, queue: sorted.queue }],
+      [
+        ...sortedTasks,
+        { sortedTasks: sorted.sortedTasks, queue: sorted.queue },
+      ],
     );
   };
 

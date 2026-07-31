@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TimeSlot } from "../types/types";
+import type { Event } from "../types/models/calendarItem";
+import type { TimeSlot } from "../types/models/timeslot";
 import { scheduleTasks } from "./scheduleTasks";
 
 const eventFactory = (

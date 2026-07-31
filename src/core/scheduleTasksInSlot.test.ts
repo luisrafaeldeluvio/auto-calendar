@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { scheduleTasksInSlot } from "./scheduleTasksInSlot";
-import type { Event } from "../types/types";
+import type { Event } from "../types/models/calendarItem";
 import { Temporal } from "@js-temporal/polyfill";
 
 export const taskFactory = (
@@ -60,16 +60,28 @@ describe("Assign task time", () => {
     expect(result.sortedTasks).toHaveLength(3);
     expect(result.queue).toHaveLength(0);
     expect(result.sortedTasks[0]).toMatchObject({
-      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
-      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      start: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
+      end: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
     });
     expect(result.sortedTasks[1]).toMatchObject({
-      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
-      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      start: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
+      end: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
     });
     expect(result.sortedTasks[2]).toMatchObject({
-      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
-      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})),
+      start: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
+      end: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ),
     });
   });
 
@@ -108,8 +120,12 @@ describe("Assign task time", () => {
 
     expect(result.sortedTasks).toHaveLength(2);
     expect(result.sortedTasks[1]).toMatchObject({
-      start: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 2})), // 120 mins
-      end: Temporal.PlainDateTime.from(Temporal.Now.plainDateISO().toPlainDateTime({hour: 3})), // 180 mins
+      start: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 2 }),
+      ), // 120 mins
+      end: Temporal.PlainDateTime.from(
+        Temporal.Now.plainDateISO().toPlainDateTime({ hour: 3 }),
+      ), // 180 mins
     });
   });
 

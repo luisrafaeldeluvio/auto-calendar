@@ -1,10 +1,8 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type {
-  Event,
-  EventDbModel,
-  TimeSlot,
-  TimeSlotDbModel,
-} from "../types/types";
+import type { Event } from "../types/models/calendarItem";
+import type { TimeSlot } from "../types/models/timeslot";
+import type { TimeSlotDbModel, EventDbModel } from "./types";
+
 
 export const toTimeSlotDbModel = (slot: TimeSlot): TimeSlotDbModel => ({
   ...slot,

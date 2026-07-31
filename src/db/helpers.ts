@@ -1,11 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type {
-  TimeSlot,
-  Event,
   Result,
   SlotError,
-  TimeSlotDbModel,
-} from "../types/types";
+} from "../types/common"
+import type {Event} from "../types/models/calendarItem"
+import type {TimeSlot} from "../types/models/timeslot"
+import type { TimeSlotDbModel } from "./types";
 import { db } from "./db";
 import { toEventDbModel, toTimeSlotDbModel } from "./serializeDataObject";
 

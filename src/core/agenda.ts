@@ -1,5 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { Event, TasksSchedule, TimeSlot } from "../types/types";
+import type { TasksSchedule } from "../types/common";
+import type { Event } from "../types/models/calendarItem";
+import type { TimeSlot } from "../types/models/timeslot";
 import { scheduleTasks } from "./scheduleTasks";
 
 export const eachDayOfInterval = (

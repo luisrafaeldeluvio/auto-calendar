@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { type Event } from "../types/types";
+import { type Event } from "../types/models/calendarItem";
 import { addEvent } from "../db/helpers";
 import { Temporal } from "@js-temporal/polyfill";
 import { sortTasks } from "../utils/sortTasks";

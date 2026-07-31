@@ -6,7 +6,7 @@ import {
   fromEventDbModel,
   fromTimeSlotDbModel,
 } from "../db/serializeDataObject";
-import { type Event } from "../types/types";
+import { type Event } from "../types/common";
 import { getWeekBounds } from "./getWeekBounds";
 
 export const sortTasks = async () => {

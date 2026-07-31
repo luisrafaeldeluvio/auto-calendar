@@ -1,5 +1,5 @@
 import { Dexie, type Table } from "dexie";
-import type {  EventDbModel, TimeSlotDbModel } from "../types/types";
+import type {  EventDbModel, TimeSlotDbModel } from "./types";
 
 export const db = new Dexie("AutoCalendarDB") as Dexie & {
   timeslots: Table<TimeSlotDbModel, string>;

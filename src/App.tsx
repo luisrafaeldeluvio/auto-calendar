@@ -24,6 +24,7 @@ const localizer = dateFnsLocalizer({
   - [x] button for creating events
   - [ ] pop up modal that shows unsorted tasks
   - [ ] buttons for calendar navigation
+  - [ ] I think i should focus on improving the code first, its becoming hard to understand.
 */
 
 function App() {

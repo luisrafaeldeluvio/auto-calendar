@@ -11,7 +11,9 @@ export const scheduleTasksInSlot = (
 ) => {
   const busyEvents = activeEvents.filter((e) => e.isBusy);
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
-
+  
+  // - [ ] should add creationDate property on CalenderBase. So when sorting
+  // those with older creationDate will have higher priority
   const schedule = (
     tasksToProcess: CalendarTaskUnscheduled[],
     currentTime: Temporal.PlainTime,
@@ -46,7 +48,13 @@ export const scheduleTasksInSlot = (
     if (isSlotFull) {
       return {
         sortedTasks: sortedTasks,
-        queue: [...remainingTasks, task],
+        queue: [...remainingTasks, {
+          ...task,
+          start: null,
+          end: null,
+          isSorted: false, 
+          isBusy: false
+        }],
       };
     }
 

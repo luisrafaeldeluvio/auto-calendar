@@ -40,4 +40,4 @@ export interface CalendarTaskUnscheduled extends BaseItem {
   end: null;
 }
 
-export type CalendarItem = CalendarEvent | CalendarTask;
+export type CalendarItem = CalendarEvent | CalendarTask | CalendarTaskUnscheduled;

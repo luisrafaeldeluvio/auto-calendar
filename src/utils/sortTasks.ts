@@ -1,43 +1,36 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { agenda } from "../core/agenda";
 import { db } from "../db/db";
-import { getAllTimeSlots } from "../db/helpers";
-import {
-  fromEventDbModel,
-  fromTimeSlotDbModel,
-} from "../db/modelMappers";
-import { type Event } from "../types/common";
+import { getAllTimeSlots } from "../db/queries/slots";
+import { bulkFromEventDbModel, fromTimeSlotDbModel } from "../db/modelMappers";
+import {} from "../types/common";
 import { getWeekBounds } from "./getWeekBounds";
+import type { CalendarTaskUnscheduled } from "../types/models/calendarItem";
 
 export const sortTasks = async () => {
   const { startOfWeek, endOfWeek } = getWeekBounds();
   const toSort = await db.events
-    /*
-    - [ ] I think this introduced a new bug on left over tasks. I have a task { weight: 0}
-    that was previously sorted. I added a new task, in theory the previous task will not be sorted.
-    Instead the task's start and end was pushed to the beggining. Not exactly a bug, more of a 
-    feature oversight since the algorithm now also handle tasks that was already sorted. To handle this, 
-    maybe I can set the start and date of tasks in queue to null in scheduleTasksInSlot.
-  */
     .filter(
       (e) =>
-        e.isSortable /*&& !e.isSorted*/ &&
+        e.isSortable &&
         e.startDate >= startOfWeek.toString() &&
         e.dueDate <= endOfWeek.toString(),
     )
     .toArray()
-    .then((arr) =>
-      arr.map(
-        (e) =>
-          fromEventDbModel({
-            // maybe i should make this auto happenin scheduleTasksInSlot???
-            ...e,
-            start: "",
-            end: "",
-            isSorted: false,
-            isBusy: false
-          }) as Event<null>,
-      ),
+    .then((arr) => bulkFromEventDbModel(arr))
+    .then((t) =>
+      t.ok
+        ? t.data.map(
+            (t) =>
+              ({
+                ...t,
+                start: null,
+                end: null,
+                isBusy: false,
+                isSorted: false,
+              }) as CalendarTaskUnscheduled,
+          )
+        : [],
     );
   /*
     Using .filter is slow, should use .where instead but since isBusy: boolean it won't work
@@ -47,9 +40,8 @@ export const sortTasks = async () => {
   const busyEvents = await db.events
     .filter((e) => e.isBusy === true && !e.isSortable)
     .toArray()
-    .then((arr) =>
-      arr.map((e) => fromEventDbModel(e) as Event<Temporal.PlainDateTime>),
-    );
+    .then((arr) => bulkFromEventDbModel(arr))
+    .then((e) => (e.ok ? e.data : []));
 
   const slots = await getAllTimeSlots().then((r) =>
     r.ok ? r.data.map((s) => fromTimeSlotDbModel(s)) : [],
@@ -63,12 +55,12 @@ export const sortTasks = async () => {
   const ag = agenda(
     Temporal.Now.plainDateISO(),
     endOfWeek.toPlainDate(),
-    toSort ?? [],
-    busyEvents ?? [],
+    toSort,
+    busyEvents,
     slots,
   );
 
-  const toUpdate = ag.sortedTasks.map((e) => {
+  const updatedScheduled = ag.sortedTasks.map((e) => {
     return {
       key: e.id,
       changes: {
@@ -80,19 +72,18 @@ export const sortTasks = async () => {
     };
   });
 
+  const updatedQueue = ag.queue.map((e) => ({
+    key: e.id,
+    changes: {
+      start: "",
+      end: "",
+      isBusy: e.isBusy,
+      isSorted: e.isSorted,
+    },
+  }));
+
   try {
-    db.events.bulkUpdate(toUpdate);
-    db.events.bulkUpdate(
-      ag.queue.map((e) => ({
-        key: e.id,
-        changes: {
-          start: "",
-          end: "",
-          isBusy: e.isBusy,
-          isSorted: e.isSorted,
-        },
-      })),
-    );
+    db.events.bulkUpdate([...updatedScheduled, ...updatedQueue]);
   } catch (e) {
     console.log("on update", e);
   }

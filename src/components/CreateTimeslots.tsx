@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { addTimeSlot } from "../db/helpers";
+import { addTimeSlot } from "../db/queries/slots";
 import { Temporal } from "@js-temporal/polyfill";
 
 const createTimeslotFromForm = async (data: FormData) => {

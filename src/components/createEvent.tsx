@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { type Event } from "../types/models/calendarItem";
-import { addEvent } from "../db/helpers";
+import { type CalendarEvent } from "../types/models/calendarItem";
+import { addEvent } from "../db/queries/events";
 import { Temporal } from "@js-temporal/polyfill";
 import { sortTasks } from "../utils/sortTasks";
 
@@ -8,7 +8,7 @@ const createEventFromForm = async (data: FormData) => {
   const start = Temporal.PlainDateTime.from(String(data.get("start")));
   const end = Temporal.PlainDateTime.from(String(data.get("end")));
 
-  const event: Omit<Event<Temporal.PlainDateTime>, "id"> = {
+  const event: Omit<CalendarEvent, "id"> = {
     type: "event",
     name: String(data.get("name")),
     notes: String(data.get("notes")),
@@ -23,8 +23,8 @@ const createEventFromForm = async (data: FormData) => {
     slotId: String(data.get("timeslots")),
     bufferBefore: Temporal.Duration.from({ hours: 0 }),
     bufferAfter: Temporal.Duration.from({ hours: 0 }),
-    startDate: null,
-    dueDate: null,
+    startDate: start,
+    dueDate: end,
   };
   const eventResponse = await addEvent(event);
   if (!eventResponse.ok) {

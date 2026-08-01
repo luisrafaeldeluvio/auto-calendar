@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { type Weight } from "../types/common";
-import { type Event } from "../types/models/calendarItem";
-import { addEvent, getAllTimeSlots } from "../db/helpers";
+import { type CalendarTaskUnscheduled } from "../types/models/calendarItem";
+import { addEvent } from "../db/queries/events";
 import { Temporal } from "@js-temporal/polyfill";
 import { useLiveQuery } from "dexie-react-hooks";
 import { sortTasks } from "../utils/sortTasks";
+import { getAllTimeSlots } from "../db/queries/slots";
 
 const durationOptions = [
   { text: "5 minutes", duration: 5 },
@@ -29,7 +30,7 @@ const weightOptions = [
 ];
 
 const createTaskFromForm = async (data: FormData) => {
-  const task: Omit<Event<null>, "id"> = {
+  const task: Omit<CalendarTaskUnscheduled, "id"> = {
     type: "task",
     name: String(data.get("name")),
     notes: String(data.get("notes")),

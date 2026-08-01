@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, format, startOfWeek, getDay } from "date-fns";
@@ -24,12 +24,18 @@ const localizer = dateFnsLocalizer({
   - [x] button for creating events
   - [ ] pop up modal that shows unsorted tasks
   - [ ] buttons for calendar navigation
-  - [ ] I think i should focus on improving the code first, its becoming hard to understand.
+  - [x] I think i should focus on improving the code first, its becoming hard to understand.
 */
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(Temporal.Now.plainDateISO());
-  const { startOfWeek, endOfWeek } = getWeekBounds(currentDate);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const { startOfWeek, endOfWeek } = getWeekBounds(
+    Temporal.PlainDate.from({
+      year: currentDate.getFullYear(),
+      month: currentDate.getMonth() + 1,
+      day: currentDate.getDate(),
+    }),
+  ); 
 
   const events = useLiveQuery(() =>
     db.events
@@ -40,6 +46,10 @@ function App() {
       )
       .toArray(),
   );
+
+  const handleNavigate = useCallback((newDate: Date) => {
+    setCurrentDate(newDate);
+  }, []);
   return (
     <>
       <div>
@@ -62,8 +72,8 @@ function App() {
             timeslots={3}
             step={5}
             localizer={localizer}
-            date={new Date(currentDate.toString())}
-            // onNavigate={}
+            date={currentDate}
+            onNavigate={handleNavigate}
             style={{ height: 700 }}
             eventPropGetter={() => {
               let newStyle = {

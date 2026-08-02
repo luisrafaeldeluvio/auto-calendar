@@ -39,7 +39,7 @@ export const sortTasks = async () => {
     by just changing it to a number on EventDbModel and using to... and from...
   */
   const busyEvents = await db.events
-    .filter((e) => e.isBusy || (e.isBusy && e.isDone))
+    .filter((e) => (e.isBusy && !e.isSortable) || (e.isBusy && e.isDone))
     .toArray()
     .then((arr) => bulkFromEventDbModel(arr))
     .then((e) => (e.ok ? e.data : []));

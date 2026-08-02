@@ -11,6 +11,7 @@ import { db } from "./db/db";
 import { getWeekBounds } from "./utils/getWeekBounds";
 import { CreateEventButton } from "./components/createEvent";
 import type { EventDbModel } from "./db/types";
+import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -30,6 +31,11 @@ const localizer = dateFnsLocalizer({
   - [ ] custom event colors
   - [ ] implement the buffer feature
   - [ ] make calendar items clickable, allowing for editing
+    - it will be basically using the create new task/event modal
+    - I should first create a combine version of them (task and event)
+    - [ ] radio toggle to switch between task and event
+    - [ ] on event, create a checkbox for auto sorting a task or manually
+      setting start and end
   - [ ] make calendar item duplicatable
   - [ ] find out how repeating calendar items would work.
     - maybe we give items a recuranceId that is shared for the repeating items.
@@ -40,7 +46,7 @@ const localizer = dateFnsLocalizer({
   - [x] I think i should focus on improving the code first, its becoming hard to understand.
 */
 
-const CustomEvent = ({ event }: { event: EventDbModel }) => {
+export const CustomEvent = ({ event }: { event: EventDbModel }) => {
   const finishTask = async (state: boolean) =>
     await db.events.update(event.id, {
       isDone: state,
@@ -89,6 +95,7 @@ function App() {
       <CreateTaskButton></CreateTaskButton>
       <CreateEventButton></CreateEventButton>
       <CreateTimeslotButton></CreateTimeslotButton>
+      <ViewUnsortedTasksButton></ViewUnsortedTasksButton>
       <Calendar
         events={events ? events : undefined}
         defaultView={Views.WEEK}

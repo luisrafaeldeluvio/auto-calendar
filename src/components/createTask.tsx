@@ -62,7 +62,6 @@ const createTaskFromForm = async (data: FormData) => {
 };
 
 export const CreateTaskButton = () => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const slots = useLiveQuery(getAllTimeSlots);
   const [startDate, setStartDate] = useState(
     Temporal.Now.plainDateISO().toString(),
@@ -71,13 +70,11 @@ export const CreateTaskButton = () => {
     Temporal.Now.plainDateISO().toString(),
   );
 
-  const toggleDialog = () => {
-    if (dialogRef.current) dialogRef.current.togglePopover();
-  };
+ 
 
   return (
     <>
-      <dialog ref={dialogRef} popover="manual">
+      <dialog id="create-task-dialog" popover="">
         <p>this popped?</p>
         <form
           action={createTaskFromForm}
@@ -154,9 +151,9 @@ export const CreateTaskButton = () => {
 
           <button type="submit">Create</button>
         </form>
-        <button onClick={toggleDialog}>Close</button>
+        <button popoverTarget="create-task-dialog" popoverTargetAction="hide">Close</button>
       </dialog>
-      <button onClick={toggleDialog}>Create new task</button>
+      <button popoverTarget="create-task-dialog" popoverTargetAction="show">Create new task</button>
     </>
   );
 };

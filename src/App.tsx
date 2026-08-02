@@ -29,6 +29,14 @@ const localizer = dateFnsLocalizer({
   - [ ] add a sort button for sortTask
   - [ ] custom event colors
   - [ ] implement the buffer feature
+  - [ ] make calendar items clickable, allowing for editing
+  - [ ] make calendar item duplicatable
+  - [ ] find out how repeating calendar items would work.
+    - maybe we give items a recuranceId that is shared for the repeating items.
+    - then an order so we know which comes first (for when we need to edit them, so only)
+      upcoming items are updated not the previous items. though I guess we can just rely on
+      start property on that.
+    - Use RFC 5545
   - [x] I think i should focus on improving the code first, its becoming hard to understand.
 */
 

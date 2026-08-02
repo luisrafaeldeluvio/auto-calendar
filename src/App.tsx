@@ -1,10 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  Calendar,
-  dateFnsLocalizer,
-  Views,
-  type Event,
-} from "react-big-calendar";
+import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -15,6 +10,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db/db";
 import { getWeekBounds } from "./utils/getWeekBounds";
 import { CreateEventButton } from "./components/createEvent";
+import type { EventDbModel } from "./db/types";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -29,18 +25,30 @@ const localizer = dateFnsLocalizer({
   - [x] button for creating events
   - [ ] pop up modal that shows unsorted tasks
   - [x] buttons for calendar navigation
-  - [ ] make tasks actually completable
+  - [x] make tasks actually completable
+  - [ ] add a sort button for sortTask
   - [ ] custom event colors
   - [ ] implement the buffer feature
   - [x] I think i should focus on improving the code first, its becoming hard to understand.
 */
 
-const CustomEvent = ({ event }: { event: Event }) => {
+const CustomEvent = ({ event }: { event: EventDbModel }) => {
+  const finishTask = async (state: boolean) =>
+    await db.events.update(event.id, {
+      isDone: state,
+    });
+
   return (
     <>
-    {/* // maybe isntead of id based, i just base the state of the input on event.isFinished */}
-        <input type="radio" name="isDone" id={crypto.randomUUID()} />
-        <span>{event.title}</span>
+      <input
+        type="checkbox"
+        name="isDone"
+        id={event.id}
+        onClick={(e) => e.stopPropagation()}
+        checked={event.isDone}
+        onChange={(e) => finishTask(e.target.checked)}
+      />
+      <span>{event.isDone ? <s>{event.name}</s> : event.name}</span>
     </>
   );
 };
@@ -74,25 +82,18 @@ function App() {
       <CreateEventButton></CreateEventButton>
       <CreateTimeslotButton></CreateTimeslotButton>
       <Calendar
-        events={
-          events
-            ? events?.map((e) => ({
-                title: e.name,
-                start: new Date(e.start),
-                end: new Date(e.end),
-              }))
-            : undefined
-        }
+        events={events ? events : undefined}
         defaultView={Views.WEEK}
         timeslots={3}
         step={5}
         localizer={localizer}
+        startAccessor={(event: EventDbModel) => new Date(event.start)}
+        endAccessor={(event: EventDbModel) => new Date(event.end)}
         date={currentDate}
         onNavigate={handleNavigate}
         components={{ week: { event: CustomEvent } }}
         formats={{ eventTimeRangeFormat: () => "" }}
-        onSelectEvent={(f) => alert(f.title)}
-        
+        onSelectEvent={(f) => alert(f.name)}
       />
     </>
   );

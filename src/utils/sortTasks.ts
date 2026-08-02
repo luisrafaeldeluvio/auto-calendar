@@ -13,6 +13,7 @@ export const sortTasks = async () => {
     .filter(
       (e) =>
         e.isSortable &&
+        !e.isDone &&
         e.startDate >= startOfWeek.toString() &&
         e.dueDate <= endOfWeek.toString(),
     )
@@ -38,7 +39,7 @@ export const sortTasks = async () => {
     by just changing it to a number on EventDbModel and using to... and from...
   */
   const busyEvents = await db.events
-    .filter((e) => e.isBusy === true && !e.isSortable)
+    .filter((e) => e.isBusy || (e.isBusy && e.isDone))
     .toArray()
     .then((arr) => bulkFromEventDbModel(arr))
     .then((e) => (e.ok ? e.data : []));

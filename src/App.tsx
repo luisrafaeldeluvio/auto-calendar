@@ -1,5 +1,10 @@
 import { useCallback, useState } from "react";
-import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import {
+  Calendar,
+  dateFnsLocalizer,
+  Views,
+  type Event,
+} from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -23,9 +28,22 @@ const localizer = dateFnsLocalizer({
 /*
   - [x] button for creating events
   - [ ] pop up modal that shows unsorted tasks
-  - [ ] buttons for calendar navigation
+  - [x] buttons for calendar navigation
+  - [ ] make tasks actually completable
+  - [ ] custom event colors
+  - [ ] implement the buffer feature
   - [x] I think i should focus on improving the code first, its becoming hard to understand.
 */
+
+const CustomEvent = ({ event }: { event: Event }) => {
+  return (
+    <>
+    {/* // maybe isntead of id based, i just base the state of the input on event.isFinished */}
+        <input type="radio" name="isDone" id={crypto.randomUUID()} />
+        <span>{event.title}</span>
+    </>
+  );
+};
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -35,7 +53,7 @@ function App() {
       month: currentDate.getMonth() + 1,
       day: currentDate.getDate(),
     }),
-  ); 
+  );
 
   const events = useLiveQuery(() =>
     db.events
@@ -52,46 +70,30 @@ function App() {
   }, []);
   return (
     <>
-      <div>
-        <CreateTaskButton></CreateTaskButton>
-        <CreateEventButton></CreateEventButton>
-        <CreateTimeslotButton></CreateTimeslotButton>
-        <div>
-          <h1>calendar1</h1>
-          <Calendar
-            events={
-              events
-                ? events?.map((e) => ({
-                    title: e.name,
-                    start: new Date(e.start),
-                    end: new Date(e.end),
-                  }))
-                : undefined
-            }
-            defaultView={Views.WEEK}
-            timeslots={3}
-            step={5}
-            localizer={localizer}
-            date={currentDate}
-            onNavigate={handleNavigate}
-            style={{ height: 700 }}
-            eventPropGetter={() => {
-              let newStyle = {
-                color: "black",
-                borderRadius: "20px",
-                border: "none",
-                height: "100px",
-                backgroundColor: "green",
-              };
-
-              return {
-                className: "",
-                style: newStyle,
-              };
-            }}
-          />
-        </div>
-      </div>
+      <CreateTaskButton></CreateTaskButton>
+      <CreateEventButton></CreateEventButton>
+      <CreateTimeslotButton></CreateTimeslotButton>
+      <Calendar
+        events={
+          events
+            ? events?.map((e) => ({
+                title: e.name,
+                start: new Date(e.start),
+                end: new Date(e.end),
+              }))
+            : undefined
+        }
+        defaultView={Views.WEEK}
+        timeslots={3}
+        step={5}
+        localizer={localizer}
+        date={currentDate}
+        onNavigate={handleNavigate}
+        components={{ week: { event: CustomEvent } }}
+        formats={{ eventTimeRangeFormat: () => "" }}
+        onSelectEvent={(f) => alert(f.title)}
+        
+      />
     </>
   );
 }

@@ -11,6 +11,7 @@ import { getWeekBounds } from "./utils/getWeekBounds";
 import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
+import { SortTasksButton } from "./components/SortTasksButton";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -99,6 +100,7 @@ function App() {
       <CreateCalendarItemButton defaultItemType={"event"}/>
       <CreateTimeslotButton></CreateTimeslotButton>
       <ViewUnsortedTasksButton></ViewUnsortedTasksButton>
+      <SortTasksButton/>
       <Calendar
         events={events ? events : undefined}
         defaultView={Views.WEEK}

@@ -22,6 +22,8 @@ interface BaseItem {
   dueDate: Temporal.PlainDateTime;
 }
 
+export type CalendarItemType = "event" | "task"
+
 export interface CalendarEvent extends BaseItem {
   type: "event";
   start: Temporal.PlainDateTime;

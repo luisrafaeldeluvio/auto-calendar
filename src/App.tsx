@@ -4,14 +4,13 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, format, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { Temporal } from "@js-temporal/polyfill";
-import { CreateTaskButton } from "./components/createTask";
 import { CreateTimeslotButton } from "./components/CreateTimeslots";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db/db";
 import { getWeekBounds } from "./utils/getWeekBounds";
-import { CreateEventButton } from "./components/createEvent";
 import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
+import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -24,7 +23,7 @@ const localizer = dateFnsLocalizer({
 
 /*
   - [x] button for creating events
-  - [ ] pop up modal that shows unsorted tasks
+  - [x] pop up modal that shows unsorted tasks
   - [x] buttons for calendar navigation
   - [x] make tasks actually completable
   - [ ] add a sort button for sortTask
@@ -33,9 +32,14 @@ const localizer = dateFnsLocalizer({
   - [ ] make calendar items clickable, allowing for editing
     - it will be basically using the create new task/event modal
     - I should first create a combine version of them (task and event)
-    - [ ] radio toggle to switch between task and event
-    - [ ] on event, create a checkbox for auto sorting a task or manually
+    - [x] radio toggle to switch between task and event.
+      - maybe i can just merge the two forms and then run a different function 
+        depending on the radio state
+    - [x] on event, create a checkbox for auto sorting a task or manually
       setting start and end
+  - [ ] BUG: events also have complete tasks buttons in their component
+  - [ ] when completing a task early, they should be moved to the curren time
+    - (with end being the current time)
   - [ ] make calendar item duplicatable
   - [ ] find out how repeating calendar items would work.
     - maybe we give items a recuranceId that is shared for the repeating items.
@@ -92,8 +96,7 @@ function App() {
   }, []);
   return (
     <>
-      <CreateTaskButton></CreateTaskButton>
-      <CreateEventButton></CreateEventButton>
+      <CreateCalendarItemButton defaultItemType={"event"}/>
       <CreateTimeslotButton></CreateTimeslotButton>
       <ViewUnsortedTasksButton></ViewUnsortedTasksButton>
       <Calendar

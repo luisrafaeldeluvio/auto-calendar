@@ -113,6 +113,12 @@ export const scheduleTasksInSlot = (
   };
 
   console.log("Start scheduling tasks");
+  /*
+    this startingTime introduced a new bug. it also sorts future tasks based on that startingTime
+    the future tasks start the current time (i.e. 1PM) instead of their slot's time. hmmm though it's 
+    probably only part of the problem. Maybe it can be fixed on Agenda or scheduleTask since they
+    handle the per day side
+  */
   console.log("Starting time at ", startingTime.toString());
   return schedule(sortTasks, startingTime, []);
 };

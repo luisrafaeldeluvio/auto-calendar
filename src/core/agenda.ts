@@ -80,16 +80,3 @@ export const agenda = (
     timeSlots,
   );
 };
-
-// okay i think this is it! we just got to optimize it now!
-// TODO:
-// - [ ] Optimize code
-// - [ ] improve namings
-// - [ ] write proper test
-// - [ ] write services funtion
-// - [x] use Temporal instead of date-fns
-// - [x] I was thinking of merging the Event and Task type and just adding a "type" item
-
-// yehh maybe not, let's focus on getting results first before all of this
-// - [ ] i should fix the components and hooks for the /client first and get it to work
-// - [ ] the db should be handled my /server, use better-sqlite3 or bun's sql later on

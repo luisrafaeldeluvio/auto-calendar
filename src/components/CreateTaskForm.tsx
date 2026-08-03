@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { type Weight } from "../types/common";
 import {
   type CalendarTask,
@@ -80,7 +80,7 @@ const createTaskFromForm = async (data: FormData) => {
   sortTasks();
 };
 
-const CreateTaskForm = () => {
+export const CreateTaskForm = () => {
   const slots = useLiveQuery(getAllTimeSlots);
   const [startDate, setStartDate] = useState(
     Temporal.Now.plainDateISO().toString(),
@@ -205,21 +205,5 @@ const CreateTaskForm = () => {
       ) : undefined}
       <button type="submit">Create</button>
     </form>
-  );
-};
-
-export const CreateTaskButton = () => {
-  return (
-    <>
-      <dialog id="create-task-dialog" popover="">
-        <CreateTaskForm />
-        <button popoverTarget="create-task-dialog" popoverTargetAction="hide">
-          Close
-        </button>
-      </dialog>
-      <button popoverTarget="create-task-dialog" popoverTargetAction="show">
-        Create new task
-      </button>
-    </>
   );
 };

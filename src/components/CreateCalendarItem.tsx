@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CreateTaskForm } from "./CreateTaskForm";
+import { TaskForm } from "./CreateTaskForm";
 import { CreateEventForm } from "./CreateEventForm";
 import type { CalendarItemType } from "../types/models/calendarItem";
 
@@ -37,7 +37,7 @@ export const CreateCalendarItemButton = ({
           required
         />
 
-        {itemType === "task" ? <CreateTaskForm /> : <CreateEventForm />}
+        {itemType === "task" ? <TaskForm mode={"create"} /> : <CreateEventForm />}
 
         <button
           popoverTarget="create-calendar-item-dialog"

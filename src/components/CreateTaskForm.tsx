@@ -1,4 +1,5 @@
-import { useState } from "react";
+import type React from "react";
+import { useId, useState } from "react";
 import { type Weight } from "../types/common";
 import {
   type CalendarTask,
@@ -9,6 +10,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import { useLiveQuery } from "dexie-react-hooks";
 import { sortTasks } from "../utils/sortTasks";
 import { getAllTimeSlots } from "../db/queries/slots";
+import type { EventDbModel } from "../db/types";
 
 const durationOptions = [
   { text: "5 minutes", duration: 5 },
@@ -79,43 +81,71 @@ const createTaskFromForm = async (data: FormData) => {
 
   sortTasks();
 };
+const updateTaskFromForm = () => {};
 
-export const CreateTaskForm = () => {
+type FormInputProps = {
+  label: string;
+  id?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>;
+
+const FormInput = ({ label, id = useId(), ...props }: FormInputProps) => {
+  return (
+    <>
+      <label htmlFor={id}>{label}</label>
+      <input id={id} {...props} />
+    </>
+  );
+};
+
+type TaskFormProps =
+  | { mode: "create"; data?: undefined }
+  | { mode: "edit" | "view"; data: EventDbModel };
+
+export const TaskForm = ({ mode, data }: TaskFormProps) => {
+  const isViewOnly = mode === "view";
   const slots = useLiveQuery(getAllTimeSlots);
-  const [startDate, setStartDate] = useState(
-    Temporal.Now.plainDateISO().toString(),
-  );
-  const [dueDate, setDueDate] = useState(
-    Temporal.Now.plainDateISO().toString(),
-  );
-  const [start, setStart] = useState(Temporal.Now.plainDateISO().toString());
-  const [end, setEnd] = useState(Temporal.Now.plainDateISO().toString());
-  const [autoSortForm, setAutoSortForm] = useState(true);
+
+  const [autoSortForm, setAutoSortForm] = useState(data?.isSortable ?? true);
+  const [startDate, setStartDate] = useState(data?.startDate ?? Temporal.Now.plainDateISO().toString(),);
+  const [dueDate, setDueDate] = useState(data?.dueDate ?? Temporal.Now.plainDateISO().toString(),);
+  const [start, setStart] = useState(data?.start ?? Temporal.Now.plainDateISO().toString(),);
+  const [end, setEnd] = useState(data?.end ?? Temporal.Now.plainDateISO().toString(),);
+
+  const handleFormAction =
+    mode === "create" ? createTaskFromForm :
+    mode === "edit" ? updateTaskFromForm :
+    undefined;
 
   return (
-    <form
-      action={createTaskFromForm}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <label htmlFor="name">name</label>
-      <input type="text" name="name" id="name" required />
+    <form action={handleFormAction} style={{ display: "flex", flexDirection: "column", }}>
+      <FormInput
+        label="Name"
+        type="text"
+        name="name"
+        defaultValue={data?.name}
+        disabled={isViewOnly}
+        required
 
-      <label htmlFor="auto-sort">Auto sort?</label>
-      <input
+      />
+      <FormInput
+        label="Auto Sort?"
         type="checkbox"
         name="auto-sort"
-        id="auto-sort"
         checked={autoSortForm}
         onChange={(e) => setAutoSortForm(e.target.checked)}
+        disabled={isViewOnly}
       />
 
       {autoSortForm ? (
         <>
-          <label htmlFor="durations">duration</label>
-          <select name="durations" id="durations" required>
+          <label htmlFor="durations">Duration</label>
+           <select
+            name="durations"
+            id="durations"
+            required
+            disabled={isViewOnly}
+            defaultValue={data ? Temporal.Duration.from(data.duration).minutes : undefined}
+          >
             {durationOptions.map((e) => (
               <option value={e.duration} key={e.duration}>
                 {e.text}
@@ -125,55 +155,54 @@ export const CreateTaskForm = () => {
         </>
       ) : (
         <>
-          <label htmlFor="start">Start</label>
-          <input
+          <FormInput
+            label="Start"
             type="datetime-local"
             name="start"
-            id="start"
             value={start}
             onChange={(e) => setStart(e.target.value)}
             required
+            disabled={isViewOnly}
           />
-          <label htmlFor="end">End</label>
-          <input
+          <FormInput
+            label="End"
             type="datetime-local"
             name="end"
-            id="end"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
             required
+            disabled={isViewOnly}
           />
         </>
       )}
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "row", }}>
         {weightOptions.map((e) => {
           return (
-            <>
-              <input
-                type="radio"
-                name="weight"
-                id={e.text}
-                value={e.weight}
-                key={e.weight}
-                defaultChecked={e.text === "Normal" ? true : false}
-                required
-              />
-              <label htmlFor={e.text}>{e.text}</label>
-            </>
+            <FormInput
+              key={e.weight}
+              label={e.text}
+              type="radio"
+              name="weight"
+              value={e.weight}
+              defaultChecked={data ? data.weight === e.weight : e.text === "Normal" }
+              required
+              disabled={isViewOnly}
+            />
           );
         })}
       </div>
 
-      {autoSortForm ? (
+      {autoSortForm && (
         <>
           <label htmlFor="timeslots">timeslot</label>
-          <select name="timeslots" id="timeslots" required>
+          <select
+            name="timeslots"
+            id="timeslots"
+            required
+            disabled={isViewOnly}
+            defaultValue={data?.slotId}
+          >
             {slots && slots.ok
               ? slots.data.map((s) => (
                   <option value={s.id} key={s.id}>
@@ -183,27 +212,30 @@ export const CreateTaskForm = () => {
               : null}
           </select>
 
-          <label htmlFor="startDate">Can be started on</label>
-          <input
+          <FormInput
+            label="Can be started on"
             type="date"
             name="startDate"
-            id="startDate"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
+            disabled={isViewOnly}
           />
-          <label htmlFor="dueDate">Due by</label>
-          <input
+          <FormInput
+            label="Due by"
             type="date"
             name="dueDate"
-            id="dueDate"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             required
+            disabled={isViewOnly}
           />
         </>
-      ) : undefined}
-      <button type="submit">Create</button>
+      )}
+
+      {isViewOnly ? undefined : (
+        <button type="submit">{mode === "create" ? "Create" : "Update"}</button>
+      )}
     </form>
   );
 };

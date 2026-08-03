@@ -15,7 +15,10 @@ export const scheduleTasksInSlot = (
 ) => {
   const busyEvents = activeEvents.filter((e) => e.isBusy);
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
-
+  const startingTime =
+    Temporal.PlainTime.compare(Temporal.Now.plainTimeISO(), slotStartTime) >= 0
+      ? Temporal.Now.plainTimeISO()
+      : slotStartTime;
   // - [ ] should add creationDate property on CalenderBase. So when sorting
   // those with older creationDate will have higher priority
   const schedule = (
@@ -110,5 +113,6 @@ export const scheduleTasksInSlot = (
   };
 
   console.log("Start scheduling tasks");
-  return schedule(sortTasks, slotStartTime, []);
+  console.log("Starting time at ", startingTime.toString());
+  return schedule(sortTasks, startingTime, []);
 };

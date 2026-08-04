@@ -216,7 +216,7 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             label="Can be started on"
             type="date"
             name="startDate"
-            value={startDate}
+            value={startDate.slice(0, 10)}
             onChange={(e) => setStartDate(e.target.value)}
             required
             disabled={isViewOnly}
@@ -225,7 +225,7 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             label="Due by"
             type="date"
             name="dueDate"
-            value={dueDate}
+            value={dueDate.slice(0, 10)}
             onChange={(e) => setDueDate(e.target.value)}
             required
             disabled={isViewOnly}

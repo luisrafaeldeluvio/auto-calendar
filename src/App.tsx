@@ -12,6 +12,7 @@ import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 import { SortTasksButton } from "./components/SortTasksButton";
+import { TaskForm } from "./components/CreateTaskForm";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -27,10 +28,10 @@ const localizer = dateFnsLocalizer({
   - [x] pop up modal that shows unsorted tasks
   - [x] buttons for calendar navigation
   - [x] make tasks actually completable
-  - [ ] add a sort button for sortTask
+  - [x] add a sort button for sortTask
   - [ ] custom event colors
   - [ ] implement the buffer feature
-  - [ ] make calendar items clickable, allowing for editing
+  - [x] make calendar items clickable, allowing for editing
     - it will be basically using the create new task/event modal
     - I should first create a combine version of them (task and event)
     - [x] radio toggle to switch between task and event.
@@ -49,6 +50,9 @@ const localizer = dateFnsLocalizer({
       start property on that.
     - Use RFC 5545
   - [x] I think i should focus on improving the code first, its becoming hard to understand.
+  - [ ] === IMPORTANT ===
+    - I should reread the react docs
+  - [ ] possible new bug, task with due date of 08/03 was scheduled on 08/04
 */
 
 export const CustomEvent = ({ event }: { event: EventDbModel }) => {
@@ -59,21 +63,24 @@ export const CustomEvent = ({ event }: { event: EventDbModel }) => {
 
   return (
     <>
-      <input
-        type="checkbox"
-        name="isDone"
-        id={event.id}
-        onClick={(e) => e.stopPropagation()}
-        checked={event.isDone}
-        onChange={(e) => finishTask(e.target.checked)}
-      />
-      <span>{event.isDone ? <s>{event.name}</s> : event.name}</span>
-    </>
+      <button style={{backgroundColor: "red", width: "100%", height: "100%"}} popoverTarget={event.id} popoverTargetAction="show">
+        <input
+          type="checkbox"
+          name="isDone"
+          id={event.id}
+          onClick={(e) => e.stopPropagation()}
+          checked={event.isDone}
+          onChange={(e) => finishTask(e.target.checked)}
+        />
+        <span>{event.isDone ? <s>{event.name}</s> : event.name}</span>
+      </button>
+    </> 
   );
 };
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [eventData, setEventData] = useState<EventDbModel | null>(null)
   const { startOfWeek, endOfWeek } = getWeekBounds(
     Temporal.PlainDate.from({
       year: currentDate.getFullYear(),
@@ -95,12 +102,18 @@ function App() {
   const handleNavigate = useCallback((newDate: Date) => {
     setCurrentDate(newDate);
   }, []);
+
   return (
     <>
-      <CreateCalendarItemButton defaultItemType={"event"}/>
+      <CreateCalendarItemButton defaultItemType={"event"} />
       <CreateTimeslotButton></CreateTimeslotButton>
       <ViewUnsortedTasksButton></ViewUnsortedTasksButton>
-      <SortTasksButton/>
+      <SortTasksButton />
+
+      <dialog id={eventData?.id} popover="">
+        {eventData && <TaskForm mode="edit" data={eventData} key={eventData.id} />}
+      </dialog>
+
       <Calendar
         events={events ? events : undefined}
         defaultView={Views.WEEK}
@@ -113,7 +126,7 @@ function App() {
         onNavigate={handleNavigate}
         components={{ week: { event: CustomEvent } }}
         formats={{ eventTimeRangeFormat: () => "" }}
-        onSelectEvent={(f) => alert(f.name)}
+        onSelectEvent={(f) => setEventData(f)}
       />
     </>
   );

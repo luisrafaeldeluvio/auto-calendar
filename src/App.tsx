@@ -98,7 +98,7 @@ function App() {
       )
       .toArray(),
   );
-
+console.log(events);
   const handleNavigate = useCallback((newDate: Date) => {
     setCurrentDate(newDate);
   }, []);
@@ -111,8 +111,8 @@ function App() {
       <SortTasksButton />
 
       <dialog id={eventData?.id} popover="">
-        {eventData && <TaskForm mode="edit" data={eventData} key={eventData.id} />}
-      </dialog>
+        {eventData && <TaskForm mode="edit" data={eventData} key={JSON.stringify(eventData)} />}
+      </dialog> 
 
       <Calendar
         events={events ? events : undefined}

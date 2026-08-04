@@ -11,6 +11,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { sortTasks } from "../utils/sortTasks";
 import { getAllTimeSlots } from "../db/queries/slots";
 import type { EventDbModel } from "../db/types";
+import { db } from "../db/db";
 
 const durationOptions = [
   { text: "5 minutes", duration: 5 },
@@ -81,7 +82,58 @@ const createTaskFromForm = async (data: FormData) => {
 
   sortTasks();
 };
-const updateTaskFromForm = () => {};
+const updateTaskFromForm = async (data: FormData, id: string) => {
+  const update = {
+    name: String(data.get("name")),
+    isSortable: data.get("auto-sort") === "on",
+    weight: Number(data.get("weight")) as Weight,
+    ...(data.get("durations")
+      ? {
+          duration: Temporal.Duration.from({
+            minutes: Number(data.get("durations")),
+          }).toString(),
+        }
+      : {}),
+    ...(data.get("start")
+      ? {
+          start: Temporal.PlainDateTime.from(
+            String(data.get("start")),
+          ).toString(),
+        }
+      : {}),
+    ...(data.get("end")
+      ? {
+          end: Temporal.PlainDateTime.from(String(data.get("end"))).toString(),
+        }
+      : {}),
+    ...(data.get("timeslots")
+      ? {
+          slotId: String(data.get("timeslots")),
+        }
+      : {}),
+    ...(data.get("startDate")
+      ? {
+          startDate: Temporal.PlainDate.from(
+            String(data.get("startDate")),
+          ).toString(),
+        }
+      : {}),
+    ...(data.get("dueDate")
+      ? {
+          dueDate: Temporal.PlainDate.from(
+            String(data.get("dueDate")),
+          ).toString(),
+        }
+      : {}),
+  };
+  try {
+    console.log(update);
+    await db.events.update(id, update);
+    sortTasks();
+  } catch (e) {
+    console.warn(e);
+  }
+};
 
 type FormInputProps = {
   label: string;
@@ -111,13 +163,13 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
   const [start, setStart] = useState(data?.start ?? Temporal.Now.plainDateISO().toString(),);
   const [end, setEnd] = useState(data?.end ?? Temporal.Now.plainDateISO().toString(),);
 
-  const handleFormAction =
-    mode === "create" ? createTaskFromForm :
-    mode === "edit" ? updateTaskFromForm :
+  const handleFormAction = (formData: FormData, eventId?: string) => 
+    mode === "create" ? createTaskFromForm(formData) :
+    mode === "edit"  && eventId ? updateTaskFromForm(formData, eventId) :
     undefined;
 
   return (
-    <form action={handleFormAction} style={{ display: "flex", flexDirection: "column", }}>
+    <form action={(formData) =>handleFormAction(formData, data?.id)} style={{ display: "flex", flexDirection: "column", }}>
       <FormInput
         label="Name"
         type="text"

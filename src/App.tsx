@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, format, startOfWeek, getDay } from "date-fns";
@@ -12,7 +12,8 @@ import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 import { SortTasksButton } from "./components/SortTasksButton";
-import { TaskForm } from "./components/CreateTaskForm";
+import { TaskFormFields, updateTaskFromForm } from "./components/CreateTaskForm";
+import { CalItemForm } from "./components/CalItemForm";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -55,7 +56,7 @@ const localizer = dateFnsLocalizer({
   - [ ] possible new bug, task with due date of 08/03 was scheduled on 08/04
 */
 
-export const CustomEvent = ({ event }: { event: EventDbModel }) => {
+export const CustomEvent = ({ event, ref }: { event: EventDbModel, ref: React.RefObject<HTMLDialogElement | null> }) => {
   const finishTask = async (state: boolean) =>
     await db.events.update(event.id, {
       isDone: state,
@@ -63,7 +64,7 @@ export const CustomEvent = ({ event }: { event: EventDbModel }) => {
 
   return (
     <>
-      <button style={{backgroundColor: "red", width: "100%", height: "100%"}} popoverTarget={event.id} popoverTargetAction="show">
+      <button style={{backgroundColor: "red", width: "100%", height: "100%"}} onClick={() => ref.current?.showModal()}>
         <input
           type="checkbox"
           name="isDone"
@@ -81,6 +82,7 @@ export const CustomEvent = ({ event }: { event: EventDbModel }) => {
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [eventData, setEventData] = useState<EventDbModel | null>(null)
+  const calItemModalRef = useRef<HTMLDialogElement>(null)
   const { startOfWeek, endOfWeek } = getWeekBounds(
     Temporal.PlainDate.from({
       year: currentDate.getFullYear(),
@@ -98,7 +100,7 @@ function App() {
       )
       .toArray(),
   );
-console.log(events);
+  
   const handleNavigate = useCallback((newDate: Date) => {
     setCurrentDate(newDate);
   }, []);
@@ -110,9 +112,26 @@ console.log(events);
       <ViewUnsortedTasksButton></ViewUnsortedTasksButton>
       <SortTasksButton />
 
-      <dialog id={eventData?.id} popover="">
-        {eventData && <TaskForm mode="edit" data={eventData} key={JSON.stringify(eventData)} />}
-      </dialog> 
+      <dialog id={eventData?.id} ref={calItemModalRef}>
+        {eventData && (
+          // <TaskForm
+          //   mode="edit"
+          //   data={eventData}
+          //   key={JSON.stringify(eventData)}
+          //   onOk={() => calItemModalRef.current?.close()}
+          // />
+
+          <CalItemForm
+            mode="edit"
+            data={eventData}
+            updateFormAction={(formData, calItem) =>
+              updateTaskFromForm(formData, calItem.id)
+            }
+          > 
+            <TaskFormFields data={eventData} isViewOnly={false} />
+          </CalItemForm>
+        )}
+      </dialog>
 
       <Calendar
         events={events ? events : undefined}
@@ -124,7 +143,11 @@ console.log(events);
         endAccessor={(event: EventDbModel) => new Date(event.end)}
         date={currentDate}
         onNavigate={handleNavigate}
-        components={{ week: { event: CustomEvent } }}
+        components={{
+          week: {
+            event: (e) => <CustomEvent event={e.event} ref={calItemModalRef} />,
+          },
+        }}
         formats={{ eventTimeRangeFormat: () => "" }}
         onSelectEvent={(f) => setEventData(f)}
       />

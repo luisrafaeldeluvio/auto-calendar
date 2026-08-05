@@ -36,7 +36,7 @@ const weightOptions = [
   { text: "Do ASAP", weight: 3 },
 ];
 
-const createTaskFromForm = async (data: FormData) => {
+export const createTaskFromForm = async (data: FormData) => {
   const baseTask = {
     type: "task",
     name: String(data.get("name")),
@@ -83,7 +83,7 @@ const createTaskFromForm = async (data: FormData) => {
 
   sortTasks();
 };
-const updateTaskFromForm = async (data: FormData, id: string) => {
+export const updateTaskFromForm = async (data: FormData, id: string) => {
   const update = {
     name: String(data.get("name")),
     isSortable: data.get("isSortable") === "on",
@@ -136,14 +136,15 @@ const updateTaskFromForm = async (data: FormData, id: string) => {
   }
 };
 
-type TaskFormProps =
-  | { mode: "create"; data?: undefined }
-  | { mode: "edit" | "view"; data: EventDbModel };
-
-export const TaskForm = ({ mode, data }: TaskFormProps) => {
-  const isViewOnly = mode === "view";
+export const TaskFormFields = ({
+  data,
+  isViewOnly,
+}: {
+  data?: EventDbModel;
+  isViewOnly: boolean;
+}) => {
   const slots = useLiveQuery(getAllTimeSlots);
-  const dateNow = Temporal.Now.plainDateISO()
+  const dateNow = Temporal.Now.plainDateISO();
   const common = { required: true, disabled: isViewOnly };
 
   const [autoSortForm, setAutoSortForm] = useState(data?.isSortable ?? true);
@@ -152,16 +153,8 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
   const [start, setStart] = useState(data?.start ?? dateNow.toString());
   const [end, setEnd] = useState(data?.end ?? dateNow.toString());
 
-  const handleFormAction = (formData: FormData, eventId?: string) => 
-    mode === "create" ? createTaskFromForm(formData) :
-    mode === "edit" && eventId ? updateTaskFromForm(formData, eventId) :
-    undefined;
-
   return (
-    <form
-      action={(formData) => handleFormAction(formData, data?.id)}
-      style={{ display: "flex", flexDirection: "column" }}
-    >
+    <>
       <FormInput
         label="Name"
         type="text"
@@ -175,7 +168,7 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
         name="isSortable"
         checked={autoSortForm}
         onChange={(e) => setAutoSortForm(e.target.checked)}
-        {...common}
+        disabled={isViewOnly}
       />
 
       {autoSortForm ? (
@@ -251,10 +244,6 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
           />
         </>
       )}
-
-      {!isViewOnly && (
-        <button type="submit">{mode === "create" ? "Create" : "Update"}</button>
-      )}
-    </form>
+    </>
   );
 };

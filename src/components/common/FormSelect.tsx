@@ -1,0 +1,36 @@
+import { useId } from "react";
+
+type FormSelectProps = {
+  label: string;
+  name: string;
+  defaultValue: string | number | undefined;
+  id?: string;
+  options: {
+    id?: string;
+    value: string | number | undefined;
+    label: string;
+  }[];
+} & React.InputHTMLAttributes<HTMLSelectElement>;
+
+
+export const FormSelect = ({
+  label,
+  name,
+  defaultValue,
+  options,
+  id = useId(),
+  ...selectProps
+}: FormSelectProps) => {
+  return (
+    <>
+      <label htmlFor={id}>{label}</label>
+      <select name={name} id={id} defaultValue={defaultValue} {...selectProps}>
+        {options.map((opt) => (
+          <option value={opt.value} key={opt.id ?? opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </>
+  );
+};

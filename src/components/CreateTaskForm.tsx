@@ -1,5 +1,4 @@
-import type React from "react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { type Weight } from "../types/common";
 import {
   type CalendarTask,
@@ -12,20 +11,22 @@ import { sortTasks } from "../utils/sortTasks";
 import { getAllTimeSlots } from "../db/queries/slots";
 import type { EventDbModel } from "../db/types";
 import { db } from "../db/db";
+import { FormInput } from "./common/FormInput";
+import { FormSelect } from "./common/FormSelect";
 
 const durationOptions = [
-  { text: "5 minutes", duration: 5 },
-  { text: "10 minutes", duration: 10 },
-  { text: "15 minutes", duration: 15 },
-  { text: "20 minutes", duration: 20 },
-  { text: "25 minutes", duration: 25 },
-  { text: "30 minutes", duration: 30 },
-  { text: "35 minutes", duration: 35 },
-  { text: "40 minutes", duration: 40 },
-  { text: "45 minutes", duration: 45 },
-  { text: "50 minutes", duration: 50 },
-  { text: "55 minutes", duration: 55 },
-  { text: "60 minutes", duration: 60 },
+  { label: "5 minutes", value: 5 },
+  { label: "10 minutes", value: 10 },
+  { label: "15 minutes", value: 15 },
+  { label: "20 minutes", value: 20 },
+  { label: "25 minutes", value: 25 },
+  { label: "30 minutes", value: 30 },
+  { label: "35 minutes", value: 35 },
+  { label: "40 minutes", value: 40 },
+  { label: "45 minutes", value: 45 },
+  { label: "50 minutes", value: 50 },
+  { label: "55 minutes", value: 55 },
+  { label: "60 minutes", value: 60 },
 ];
 
 const weightOptions = [
@@ -85,12 +86,12 @@ const createTaskFromForm = async (data: FormData) => {
 const updateTaskFromForm = async (data: FormData, id: string) => {
   const update = {
     name: String(data.get("name")),
-    isSortable: data.get("auto-sort") === "on",
+    isSortable: data.get("isSortable") === "on",
     weight: Number(data.get("weight")) as Weight,
-    ...(data.get("durations")
+    ...(data.get("duration")
       ? {
           duration: Temporal.Duration.from({
-            minutes: Number(data.get("durations")),
+            minutes: Number(data.get("duration")),
           }).toString(),
         }
       : {}),
@@ -135,20 +136,6 @@ const updateTaskFromForm = async (data: FormData, id: string) => {
   }
 };
 
-type FormInputProps = {
-  label: string;
-  id?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>;
-
-const FormInput = ({ label, id = useId(), ...props }: FormInputProps) => {
-  return (
-    <>
-      <label htmlFor={id}>{label}</label>
-      <input id={id} {...props} />
-    </>
-  );
-};
-
 type TaskFormProps =
   | { mode: "create"; data?: undefined }
   | { mode: "edit" | "view"; data: EventDbModel };
@@ -156,55 +143,49 @@ type TaskFormProps =
 export const TaskForm = ({ mode, data }: TaskFormProps) => {
   const isViewOnly = mode === "view";
   const slots = useLiveQuery(getAllTimeSlots);
+  const dateNow = Temporal.Now.plainDateISO()
+  const common = { required: true, disabled: isViewOnly };
 
   const [autoSortForm, setAutoSortForm] = useState(data?.isSortable ?? true);
-  const [startDate, setStartDate] = useState(data?.startDate ?? Temporal.Now.plainDateISO().toString(),);
-  const [dueDate, setDueDate] = useState(data?.dueDate ?? Temporal.Now.plainDateISO().toString(),);
-  const [start, setStart] = useState(data?.start ?? Temporal.Now.plainDateISO().toString(),);
-  const [end, setEnd] = useState(data?.end ?? Temporal.Now.plainDateISO().toString(),);
+  const [startDate, setStartDate] = useState(data?.startDate ?? dateNow.toString());
+  const [dueDate, setDueDate] = useState(data?.dueDate ?? dateNow.toString());
+  const [start, setStart] = useState(data?.start ?? dateNow.toString());
+  const [end, setEnd] = useState(data?.end ?? dateNow.toString());
 
   const handleFormAction = (formData: FormData, eventId?: string) => 
     mode === "create" ? createTaskFromForm(formData) :
-    mode === "edit"  && eventId ? updateTaskFromForm(formData, eventId) :
+    mode === "edit" && eventId ? updateTaskFromForm(formData, eventId) :
     undefined;
 
   return (
-    <form action={(formData) =>handleFormAction(formData, data?.id)} style={{ display: "flex", flexDirection: "column", }}>
+    <form
+      action={(formData) => handleFormAction(formData, data?.id)}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
       <FormInput
         label="Name"
         type="text"
         name="name"
         defaultValue={data?.name}
-        disabled={isViewOnly}
-        required
-
+        {...common}
       />
       <FormInput
         label="Auto Sort?"
         type="checkbox"
-        name="auto-sort"
+        name="isSortable"
         checked={autoSortForm}
         onChange={(e) => setAutoSortForm(e.target.checked)}
-        disabled={isViewOnly}
+        {...common}
       />
 
       {autoSortForm ? (
-        <>
-          <label htmlFor="durations">Duration</label>
-           <select
-            name="durations"
-            id="durations"
-            required
-            disabled={isViewOnly}
-            defaultValue={data ? Temporal.Duration.from(data.duration).minutes : undefined}
-          >
-            {durationOptions.map((e) => (
-              <option value={e.duration} key={e.duration}>
-                {e.text}
-              </option>
-            ))}
-          </select>
-        </>
+        <FormSelect
+          label="Duration"
+          name="duration"
+          defaultValue={data && Temporal.Duration.from(data.duration).minutes}
+          options={durationOptions}
+          {...common}
+        />
       ) : (
         <>
           <FormInput
@@ -213,8 +194,7 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             name="start"
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            required
-            disabled={isViewOnly}
+            {...common}
           />
           <FormInput
             label="End"
@@ -222,24 +202,22 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             name="end"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            required
-            disabled={isViewOnly}
+            {...common}
           />
         </>
       )}
 
-      <div style={{ display: "flex", flexDirection: "row", }}>
-        {weightOptions.map((e) => {
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        {weightOptions.map(({ weight, text }) => {
           return (
             <FormInput
-              key={e.weight}
-              label={e.text}
+              key={weight}
+              label={text}
               type="radio"
               name="weight"
-              value={e.weight}
-              defaultChecked={data ? data.weight === e.weight : e.text === "Normal" }
-              required
-              disabled={isViewOnly}
+              value={weight}
+              defaultChecked={data?.weight === weight || text === "Normal"}
+              {...common}
             />
           );
         })}
@@ -247,22 +225,13 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
 
       {autoSortForm && (
         <>
-          <label htmlFor="timeslots">timeslot</label>
-          <select
-            name="timeslots"
-            id="timeslots"
-            required
-            disabled={isViewOnly}
+          <FormSelect
+            label="Timeslots"
+            name="slotId"
             defaultValue={data?.slotId}
-          >
-            {slots && slots.ok
-              ? slots.data.map((s) => (
-                  <option value={s.id} key={s.id}>
-                    {s.name}
-                  </option>
-                ))
-              : null}
-          </select>
+            options={slots?.ok && slots.data.map((s) => ({label: s.name, value: s.id})) || []}
+            {...common}
+          />
 
           <FormInput
             label="Can be started on"
@@ -270,8 +239,7 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             name="startDate"
             value={startDate.slice(0, 10)}
             onChange={(e) => setStartDate(e.target.value)}
-            required
-            disabled={isViewOnly}
+            {...common}
           />
           <FormInput
             label="Due by"
@@ -279,13 +247,12 @@ export const TaskForm = ({ mode, data }: TaskFormProps) => {
             name="dueDate"
             value={dueDate.slice(0, 10)}
             onChange={(e) => setDueDate(e.target.value)}
-            required
-            disabled={isViewOnly}
+            {...common}
           />
         </>
       )}
 
-      {isViewOnly ? undefined : (
+      {!isViewOnly && (
         <button type="submit">{mode === "create" ? "Create" : "Update"}</button>
       )}
     </form>

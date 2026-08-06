@@ -21,6 +21,12 @@ export const scheduleTasksInSlot = (
       : slotStartTime;
   // - [ ] should add creationDate property on CalenderBase. So when sorting
   // those with older creationDate will have higher priority
+
+  /*
+    I think is where I need to fix. the dueDate bug, I'll probably need to add
+    a new parameter that holds the unsorted tasks now. Or maybe I can just create
+    a new param dedicated to overdues?
+  */
   const schedule = (
     tasksToProcess: CalendarTaskUnscheduled[],
     currentTime: Temporal.PlainTime,
@@ -36,7 +42,8 @@ export const scheduleTasksInSlot = (
       console.log("No more tasks to sort, Stopped scheduling tasks");
       return { sortedTasks: sortedTasks, queue: [] };
     }
- 
+
+    // - [ ] I should add a isOverDue property and use Temporal.Now.PlaneDateISO() instead of date
     if (Temporal.PlainDate.compare(task.dueDate.toPlainDate(), date) === -1) {
       console.log("Task is overdue. Skipping and scheduling next task.");
       return schedule(remainingTasks, currentTime, sortedTasks, [
@@ -63,7 +70,7 @@ export const scheduleTasksInSlot = (
         Temporal.PlainTime.compare(taskEndTime, e.start) === 1,
     );
 
-    if (overlappingEvent)
+    overlappingEvent &&
       console.log(
         "Overlaps with: ",
         overlappingEvent.id,
@@ -81,11 +88,12 @@ export const scheduleTasksInSlot = (
     const isSlotFull =
       Temporal.PlainTime.compare(taskEndTime, slotEndTime) === 1;
 
-    if (isSlotFull) {
-      console.log("Slot is full, Stopped scheduling tasks");
+    isSlotFull && console.log("Slot is full, Stopped scheduling tasks");
+    isSlotFull &&
       console.log({
         sortedTasks: sortedTasks,
         queue: [
+          ...overDueTasks,
           ...remainingTasks,
           {
             ...task,
@@ -96,6 +104,8 @@ export const scheduleTasksInSlot = (
           },
         ],
       });
+
+    if (isSlotFull)
       return {
         sortedTasks: sortedTasks,
         queue: [
@@ -110,7 +120,6 @@ export const scheduleTasksInSlot = (
           },
         ],
       };
-    }
 
     const newTask: CalendarTask = {
       ...task,
@@ -119,6 +128,7 @@ export const scheduleTasksInSlot = (
       isBusy: true,
       isSorted: true,
     };
+
     console.log("Added task to schedule object. Scheduling next task");
     return schedule(
       remainingTasks,

@@ -26,11 +26,21 @@ export const scheduleTasks = (
     const [currentSlot, nextSlot, ...slots] = timeSlots;
     if (!currentSlot) return sortedTasks;
     const tasks = queuedTasks.filter((t) => t.slotId === currentSlot.id);
+    console.log("Scheduling in slot: ", currentSlot.id);
 
     const areSlotsOverlapping =
       nextSlot !== undefined &&
       Temporal.PlainTime.compare(nextSlot.start, currentSlot.end) === -1;
 
+    areSlotsOverlapping &&
+      console.log(
+        "Slot: ",
+        currentSlot.id,
+        " and",
+        nextSlot?.id,
+        "are Overlapping",
+      );
+    console.log("Resolving slot conflict...");
     const sorted: TasksSchedule = areSlotsOverlapping
       ? resolveSlotTaskConflicts(
           currentSlot,
@@ -47,6 +57,7 @@ export const scheduleTasks = (
           date,
         );
 
+    console.log("Items in slot scheduled. Scheduling next slot.");
     return scheduleTasksRecursion(
       [...busyEvents, ...sorted.sortedTasks],
       [...(nextSlot ? [nextSlot] : []), ...slots],
@@ -57,5 +68,6 @@ export const scheduleTasks = (
     );
   };
 
+  console.log("Scheduling items in", date.toString(), "per slot");
   return scheduleTasksRecursion(busyEvents, timeSlots, []);
 };

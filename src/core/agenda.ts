@@ -40,8 +40,7 @@ export const agenda = (
         sortedTasks: scheduled ?? [],
         queue: allTasks,
       };
-
-    // turn this into a map
+    
     const tasksInDate = allTasks.filter((task) => {
       return (
         Temporal.PlainDateTime.compare(task.startDate ?? {}, date) === -1 ||
@@ -56,14 +55,11 @@ export const agenda = (
       date,
     );
 
-    // SEPERATION OF CONCERN I SHOULD NOT FLATTEN IT!!!!
+    console.log("Finished scheduling tasks per slot in ", date.toString())
     const flatten = scheduleTasksInDate.reduce<CalendarTask[]>(
       (acc, curr) => [...acc, ...curr.sortedTasks],
       [],
     );
-
-    //      in a key-value pair (record)
-    //     like date: flatten. (map)
 
     const queue = allTasks.filter(
       (task) => !flatten.some((task2) => task.id === task2.id),

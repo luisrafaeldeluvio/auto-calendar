@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { EventDbModel } from "../db/types";
+import type { EventDbModel } from "../../db/types";
 
 type CalItemFormProps = {
   onOk?: () => void;

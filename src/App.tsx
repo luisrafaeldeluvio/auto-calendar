@@ -12,8 +12,9 @@ import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 import { SortTasksButton } from "./components/SortTasksButton";
-import {  CalItemFormFields, updateTaskFromForm } from "./components/form/CreateTaskForm";
+import { CalItemFormFields } from "./components/form/CalItemFormFields";
 import { CalItemForm } from "./components/form/CalItemForm";
+import { updateTaskFromForm } from "./components/form/taskFromForm";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -29,7 +30,7 @@ const localizer = dateFnsLocalizer({
   - [x] pop up modal that shows unsorted tasks
   - [x] buttons for calendar navigation
   - [x] make tasks actually completable
-  - [x] add a sort button for sortTask
+    - [ ] BUG: events also have the checkboxes for completables
   - [ ] custom event colors
   - [ ] implement the buffer feature
   - [x] make calendar items clickable, allowing for editing
@@ -44,19 +45,25 @@ const localizer = dateFnsLocalizer({
   - [ ] when completing a task early, they should be moved to the curren time
     - (with end being the current time)
   - [ ] make calendar item duplicatable
+  - [ ] allow the dialogs to be closable when clicking outside the dialog
+  - [ ] allow items to de deletable
+  - [ ] implement the update event forms function
   - [ ] find out how repeating calendar items would work.
     - maybe we give items a recuranceId that is shared for the repeating items.
     - then an order so we know which comes first (for when we need to edit them, so only)
       upcoming items are updated not the previous items. though I guess we can just rely on
       start property on that.
     - Use RFC 5545
-  - [x] I think i should focus on improving the code first, its becoming hard to understand.
-  - [ ] === IMPORTANT ===
-    - I should reread the react docs
   - [ ] possible new bug, task with due date of 08/03 was scheduled on 08/04
 */
 
-export const CustomEvent = ({ event, ref }: { event: EventDbModel, ref: React.RefObject<HTMLDialogElement | null> }) => {
+export const CustomEvent = ({
+  event,
+  ref,
+}: {
+  event: EventDbModel;
+  ref: React.RefObject<HTMLDialogElement | null>;
+}) => {
   const finishTask = async (state: boolean) =>
     await db.events.update(event.id, {
       isDone: state,
@@ -64,7 +71,10 @@ export const CustomEvent = ({ event, ref }: { event: EventDbModel, ref: React.Re
 
   return (
     <>
-      <button style={{backgroundColor: "red", width: "100%", height: "100%"}} onClick={() => ref.current?.showModal()}>
+      <button
+        style={{ backgroundColor: "red", width: "100%", height: "100%" }}
+        onClick={() => ref.current?.showModal()}
+      >
         <input
           type="checkbox"
           name="isDone"
@@ -75,14 +85,14 @@ export const CustomEvent = ({ event, ref }: { event: EventDbModel, ref: React.Re
         />
         <span>{event.isDone ? <s>{event.name}</s> : event.name}</span>
       </button>
-    </> 
+    </>
   );
 };
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [eventData, setEventData] = useState<EventDbModel | null>(null)
-  const calItemModalRef = useRef<HTMLDialogElement>(null)
+  const [eventData, setEventData] = useState<EventDbModel | null>(null);
+  const calItemModalRef = useRef<HTMLDialogElement>(null);
   const { startOfWeek, endOfWeek } = getWeekBounds(
     Temporal.PlainDate.from({
       year: currentDate.getFullYear(),
@@ -100,7 +110,7 @@ function App() {
       )
       .toArray(),
   );
-  
+
   const handleNavigate = useCallback((newDate: Date) => {
     setCurrentDate(newDate);
   }, []);
@@ -127,8 +137,12 @@ function App() {
             updateFormAction={(formData, calItem) =>
               updateTaskFromForm(formData, calItem.id)
             }
-          > 
-            <CalItemFormFields data={eventData} isViewOnly={false} itemType={eventData.type} />
+          >
+            <CalItemFormFields
+              data={eventData}
+              isViewOnly={false}
+              itemType={eventData.type}
+            />
           </CalItemForm>
         )}
       </dialog>

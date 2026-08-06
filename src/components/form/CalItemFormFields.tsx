@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
-import { type Weight } from "../../types/common";
-import {
-  type CalendarItemType,
-  type CalendarTask,
-  type CalendarTaskUnscheduled,
-} from "../../types/models/calendarItem";
-import { addEvent } from "../../db/queries/events";
+import { type CalendarItemType } from "../../types/models/calendarItem";
 import { Temporal } from "@js-temporal/polyfill";
 import { useLiveQuery } from "dexie-react-hooks";
-import { sortTasks } from "../../utils/sortTasks";
 import { getAllTimeSlots } from "../../db/queries/slots";
 import type { EventDbModel } from "../../db/types";
-import { db } from "../../db/db";
 import { FormInput } from "../common/FormInput";
 import { FormSelect } from "../common/FormSelect";
 
@@ -36,106 +28,6 @@ const weightOptions = [
   { text: "High", weight: 2 },
   { text: "Do ASAP", weight: 3 },
 ];
-
-export const createTaskFromForm = async (data: FormData) => {
-  const baseTask = {
-    type: "task",
-    name: String(data.get("name")),
-    notes: String(data.get("notes")),
-    isBusy: false,
-    isDone: false,
-    isSorted: false,
-    weight: Number(data.get("weight")) as Weight,
-    slotId: String(data.get("timeslots")),
-    bufferBefore: Temporal.Duration.from({ hours: 0 }),
-    bufferAfter: Temporal.Duration.from({ hours: 0 }),
-  } as const;
-
-  const task: Omit<CalendarTaskUnscheduled, "id"> | Omit<CalendarTask, "id"> =
-    Boolean(data.get("auto-sort"))
-      ? {
-          ...baseTask,
-          start: null,
-          end: null,
-          isSortable: true,
-          duration: Temporal.Duration.from({
-            minutes: Number(data.get("durations")),
-          }),
-          startDate: Temporal.PlainDateTime.from(String(data.get("startDate"))),
-          dueDate: Temporal.PlainDateTime.from(String(data.get("dueDate"))),
-        }
-      : {
-          ...baseTask,
-          start: Temporal.PlainDateTime.from(String(data.get("start"))),
-          end: Temporal.PlainDateTime.from(String(data.get("end"))),
-          isSortable: false,
-          duration: Temporal.PlainDateTime.from(String(data.get("end"))).since(
-            Temporal.PlainDateTime.from(String(data.get("start"))),
-          ),
-          startDate: Temporal.PlainDateTime.from(String(data.get("start"))),
-          dueDate: Temporal.PlainDateTime.from(String(data.get("end"))),
-        };
-  const eventResponse = await addEvent(task);
-
-  if (!eventResponse.ok) {
-    alert(eventResponse.error);
-    return;
-  }
-
-  sortTasks();
-};
-export const updateTaskFromForm = async (data: FormData, id: string) => {
-  const update = {
-    name: String(data.get("name")),
-    isSortable: data.get("isSortable") === "on",
-    weight: Number(data.get("weight")) as Weight,
-    ...(data.get("duration")
-      ? {
-          duration: Temporal.Duration.from({
-            minutes: Number(data.get("duration")),
-          }).toString(),
-        }
-      : {}),
-    ...(data.get("start")
-      ? {
-          start: Temporal.PlainDateTime.from(
-            String(data.get("start")),
-          ).toString(),
-        }
-      : {}),
-    ...(data.get("end")
-      ? {
-          end: Temporal.PlainDateTime.from(String(data.get("end"))).toString(),
-        }
-      : {}),
-    ...(data.get("timeslots")
-      ? {
-          slotId: String(data.get("timeslots")),
-        }
-      : {}),
-    ...(data.get("startDate")
-      ? {
-          startDate: Temporal.PlainDate.from(
-            String(data.get("startDate")),
-          ).toString(),
-        }
-      : {}),
-    ...(data.get("dueDate")
-      ? {
-          dueDate: Temporal.PlainDate.from(
-            String(data.get("dueDate")),
-          ).toString(),
-        }
-      : {}),
-  };
-  try {
-    console.log(update);
-    await db.events.update(id, update);
-    sortTasks();
-  } catch (e) {
-    console.warn(e);
-  }
-};
 
 interface CalItemFormFieldsProps {
   itemType: CalendarItemType;

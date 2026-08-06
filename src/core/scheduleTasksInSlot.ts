@@ -25,6 +25,7 @@ export const scheduleTasksInSlot = (
     tasksToProcess: CalendarTaskUnscheduled[],
     currentTime: Temporal.PlainTime,
     sortedTasks: CalendarTask[],
+    overDueTasks: CalendarTaskUnscheduled[],
   ): TasksSchedule => {
     console.log({
       tasksToProcess: tasksToProcess.map((t) => t.id),
@@ -34,6 +35,14 @@ export const scheduleTasksInSlot = (
     if (!task) {
       console.log("No more tasks to sort, Stopped scheduling tasks");
       return { sortedTasks: sortedTasks, queue: [] };
+    }
+ 
+    if (Temporal.PlainDate.compare(task.dueDate.toPlainDate(), date) === -1) {
+      console.log("Task is overdue. Skipping and scheduling next task.");
+      return schedule(remainingTasks, currentTime, sortedTasks, [
+        ...overDueTasks,
+        task,
+      ]);
     }
 
     const taskStartTime: Temporal.PlainTime = currentTime;
@@ -65,7 +74,8 @@ export const scheduleTasksInSlot = (
       return schedule(
         tasksToProcess,
         Temporal.PlainTime.from(overlappingEvent.end),
-        [...sortedTasks],
+        sortedTasks,
+        overDueTasks,
       );
 
     const isSlotFull =
@@ -89,6 +99,7 @@ export const scheduleTasksInSlot = (
       return {
         sortedTasks: sortedTasks,
         queue: [
+          ...overDueTasks,
           ...remainingTasks,
           {
             ...task,
@@ -109,7 +120,12 @@ export const scheduleTasksInSlot = (
       isSorted: true,
     };
     console.log("Added task to schedule object. Scheduling next task");
-    return schedule(remainingTasks, taskEndTime, [...sortedTasks, newTask]);
+    return schedule(
+      remainingTasks,
+      taskEndTime,
+      [...sortedTasks, newTask],
+      overDueTasks,
+    );
   };
 
   console.log("Start scheduling tasks");
@@ -120,5 +136,5 @@ export const scheduleTasksInSlot = (
     handle the per day side
   */
   console.log("Starting time at ", startingTime.toString());
-  return schedule(sortTasks, startingTime, []);
+  return schedule(sortTasks, startingTime, [], []);
 };

@@ -54,7 +54,10 @@ const localizer = dateFnsLocalizer({
       upcoming items are updated not the previous items. though I guess we can just rely on
       start property on that.
     - Use RFC 5545
-  - [ ] possible new bug, task with due date of 08/03 was scheduled on 08/04
+  - [x] possible new bug, task with due date of 08/03 was scheduled on 08/04
+    - CONFIRMED, tasks are not respecting their due date. I think I know why, our events
+      gets all the tasks within the week bounds, this includes those that are overdue.
+      Wait, but they are STILL being scheduled, something to do with the sorting algorithm.
 */
 
 export const CustomEvent = ({

@@ -17,20 +17,20 @@ export const createTaskFromForm = async (data: FormData) => {
     isDone: false,
     isSorted: false,
     weight: Number(data.get("weight")) as Weight,
-    slotId: String(data.get("timeslots")),
+    slotId: String(data.get("slotId")),
     bufferBefore: Temporal.Duration.from({ hours: 0 }),
     bufferAfter: Temporal.Duration.from({ hours: 0 }),
   } as const;
 
   const task: Omit<CalendarTaskUnscheduled, "id"> | Omit<CalendarTask, "id"> =
-    Boolean(data.get("auto-sort"))
+    Boolean(data.get("isSortable") === "on")
       ? {
           ...baseTask,
           start: null,
           end: null,
           isSortable: true,
           duration: Temporal.Duration.from({
-            minutes: Number(data.get("durations")),
+            minutes: Number(data.get("duration")),
           }),
           startDate: Temporal.PlainDateTime.from(String(data.get("startDate"))),
           dueDate: Temporal.PlainDateTime.from(String(data.get("dueDate"))),

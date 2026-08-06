@@ -12,8 +12,8 @@ import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 import { SortTasksButton } from "./components/SortTasksButton";
-import {  CalItemFormFields, updateTaskFromForm } from "./components/CreateTaskForm";
-import { CalItemForm } from "./components/CalItemForm";
+import {  CalItemFormFields, updateTaskFromForm } from "./components/form/CreateTaskForm";
+import { CalItemForm } from "./components/form/CalItemForm";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({

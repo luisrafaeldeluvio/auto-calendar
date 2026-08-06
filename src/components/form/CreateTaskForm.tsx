@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import { type Weight } from "../types/common";
+import { type Weight } from "../../types/common";
 import {
   type CalendarItemType,
   type CalendarTask,
   type CalendarTaskUnscheduled,
-} from "../types/models/calendarItem";
-import { addEvent } from "../db/queries/events";
+} from "../../types/models/calendarItem";
+import { addEvent } from "../../db/queries/events";
 import { Temporal } from "@js-temporal/polyfill";
 import { useLiveQuery } from "dexie-react-hooks";
-import { sortTasks } from "../utils/sortTasks";
-import { getAllTimeSlots } from "../db/queries/slots";
-import type { EventDbModel } from "../db/types";
-import { db } from "../db/db";
-import { FormInput } from "./common/FormInput";
-import { FormSelect } from "./common/FormSelect";
+import { sortTasks } from "../../utils/sortTasks";
+import { getAllTimeSlots } from "../../db/queries/slots";
+import type { EventDbModel } from "../../db/types";
+import { db } from "../../db/db";
+import { FormInput } from "../common/FormInput";
+import { FormSelect } from "../common/FormSelect";
 
 const durationOptions = [
   { label: "5 minutes", value: 5 },

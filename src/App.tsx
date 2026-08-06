@@ -12,7 +12,7 @@ import type { EventDbModel } from "./db/types";
 import { ViewUnsortedTasksButton } from "./components/ViewUnsortedTasks";
 import { CreateCalendarItemButton } from "./components/CreateCalendarItem";
 import { SortTasksButton } from "./components/SortTasksButton";
-import { TaskFormFields, updateTaskFromForm } from "./components/CreateTaskForm";
+import {  CalItemFormFields, updateTaskFromForm } from "./components/CreateTaskForm";
 import { CalItemForm } from "./components/CalItemForm";
 
 const locales = { "en-US": enUS };
@@ -128,7 +128,7 @@ function App() {
               updateTaskFromForm(formData, calItem.id)
             }
           > 
-            <TaskFormFields data={eventData} isViewOnly={false} />
+            <CalItemFormFields data={eventData} isViewOnly={false} itemType={eventData.type} />
           </CalItemForm>
         )}
       </dialog>

@@ -137,7 +137,7 @@ export const updateTaskFromForm = async (data: FormData, id: string) => {
   }
 };
 
-interface TaskFormFieldsProps {
+interface CalItemFormFieldsProps {
   itemType: CalendarItemType;
   data?: EventDbModel;
   isViewOnly: boolean;
@@ -147,7 +147,7 @@ export const CalItemFormFields = ({
   itemType,
   data,
   isViewOnly,
-}: TaskFormFieldsProps) => {
+}: CalItemFormFieldsProps) => {
   const isEvent = itemType === "event";
   const isTask = itemType === "task";
   const slots = useLiveQuery(getAllTimeSlots);

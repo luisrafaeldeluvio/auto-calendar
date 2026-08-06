@@ -4,7 +4,7 @@ import { addEvent } from "../db/queries/events";
 import { Temporal } from "@js-temporal/polyfill";
 import { sortTasks } from "../utils/sortTasks";
 
-const createEventFromForm = async (data: FormData) => {
+export const createEventFromForm = async (data: FormData) => {
   const start = Temporal.PlainDateTime.from(String(data.get("start")));
   const end = Temporal.PlainDateTime.from(String(data.get("end")));
 

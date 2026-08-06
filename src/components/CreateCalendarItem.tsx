@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { CalendarItemType } from "../types/models/calendarItem";
 import { CalItemForm } from "./CalItemForm";
-import { createTaskFromForm, TaskFormFields } from "./CreateTaskForm";
+import { CalItemFormFields, createTaskFromForm, } from "./CreateTaskForm";
+import { createEventFromForm } from "./CreateEventForm";
 
 interface CreateCalendarItemButtonProp {
   defaultItemType: CalendarItemType;
@@ -42,11 +43,15 @@ export const CreateCalendarItemButton = ({
             mode="create"
             createFormAction={(formData) => createTaskFromForm(formData)}
           >
-            <TaskFormFields isViewOnly={false} />
+            <CalItemFormFields isViewOnly={false} itemType={"task"} />
           </CalItemForm>
         ) : (
-          // <CreateEventForm />
-          <p>WIP</p>
+          <CalItemForm
+            mode="create"
+            createFormAction={(formData) => createEventFromForm(formData)}
+          >
+            <CalItemFormFields isViewOnly={false} itemType={"event"} />
+          </CalItemForm>
         )}
 
         <button

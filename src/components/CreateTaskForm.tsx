@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type Weight } from "../types/common";
 import {
+  type CalendarItemType,
   type CalendarTask,
   type CalendarTaskUnscheduled,
 } from "../types/models/calendarItem";
@@ -136,22 +137,39 @@ export const updateTaskFromForm = async (data: FormData, id: string) => {
   }
 };
 
-export const TaskFormFields = ({
-  data,
-  isViewOnly,
-}: {
+interface TaskFormFieldsProps {
+  itemType: CalendarItemType;
   data?: EventDbModel;
   isViewOnly: boolean;
-}) => {
+}
+
+export const CalItemFormFields = ({
+  itemType,
+  data,
+  isViewOnly,
+}: TaskFormFieldsProps) => {
+  const isEvent = itemType === "event";
+  const isTask = itemType === "task";
   const slots = useLiveQuery(getAllTimeSlots);
-  const dateNow = Temporal.Now.plainDateISO();
+  const dateNow = Temporal.Now.plainDateTimeISO().toString();
   const common = { required: true, disabled: isViewOnly };
 
-  const [autoSortForm, setAutoSortForm] = useState(data?.isSortable ?? true);
-  const [startDate, setStartDate] = useState(data?.startDate ?? dateNow.toString());
-  const [dueDate, setDueDate] = useState(data?.dueDate ?? dateNow.toString());
-  const [start, setStart] = useState(data?.start ?? dateNow.toString());
-  const [end, setEnd] = useState(data?.end ?? dateNow.toString());
+  const [autoSortForm, setAutoSortForm] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string | undefined>(dateNow);
+  const [dueDate, setDueDate] = useState<string | undefined>(dateNow);
+  const [start, setStart] = useState<string | undefined>(dateNow);
+  const [end, setEnd] = useState<string | undefined>(dateNow);
+
+  useEffect(() => {
+    if (!data) return;
+    setStart(data.start);
+    setEnd(data.end);
+
+    if (isEvent) return;
+    setAutoSortForm(data.isSortable);
+    setStartDate(data.startDate);
+    setDueDate(data.dueDate);
+  }, [data]);
 
   return (
     <>
@@ -162,24 +180,18 @@ export const TaskFormFields = ({
         defaultValue={data?.name}
         {...common}
       />
-      <FormInput
-        label="Auto Sort?"
-        type="checkbox"
-        name="isSortable"
-        checked={autoSortForm}
-        onChange={(e) => setAutoSortForm(e.target.checked)}
-        disabled={isViewOnly}
-      />
-
-      {autoSortForm ? (
-        <FormSelect
-          label="Duration"
-          name="duration"
-          defaultValue={data && Temporal.Duration.from(data.duration).minutes}
-          options={durationOptions}
-          {...common}
+      {isTask && (
+        <FormInput
+          label="Auto Sort?"
+          type="checkbox"
+          name="isSortable"
+          checked={autoSortForm}
+          onChange={(e) => setAutoSortForm(e.target.checked)}
+          disabled={isViewOnly}
         />
-      ) : (
+      )}
+
+      {isEvent || !autoSortForm ? (
         <>
           <FormInput
             label="Start"
@@ -198,50 +210,66 @@ export const TaskFormFields = ({
             {...common}
           />
         </>
+      ) : (
+        <FormSelect
+          label="Duration"
+          name="duration"
+          defaultValue={data && Temporal.Duration.from(data.duration).minutes}
+          options={durationOptions}
+          {...common}
+        />
       )}
 
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        {weightOptions.map(({ weight, text }) => {
-          return (
-            <FormInput
-              key={weight}
-              label={text}
-              type="radio"
-              name="weight"
-              value={weight}
-              defaultChecked={data?.weight === weight || text === "Normal"}
-              {...common}
-            />
-          );
-        })}
-      </div>
-
-      {autoSortForm && (
+      {isTask && (
         <>
-          <FormSelect
-            label="Timeslots"
-            name="slotId"
-            defaultValue={data?.slotId}
-            options={slots?.ok && slots.data.map((s) => ({label: s.name, value: s.id})) || []}
-            {...common}
-          />
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            {weightOptions.map(({ weight, text }) => {
+              return (
+                <FormInput
+                  key={weight}
+                  label={text}
+                  type="radio"
+                  name="weight"
+                  value={weight}
+                  defaultChecked={data?.weight === weight || text === "Normal"}
+                  {...common}
+                />
+              );
+            })}
+          </div>
 
-          <FormInput
-            label="Can be started on"
-            type="date"
-            name="startDate"
-            value={startDate.slice(0, 10)}
-            onChange={(e) => setStartDate(e.target.value)}
-            {...common}
-          />
-          <FormInput
-            label="Due by"
-            type="date"
-            name="dueDate"
-            value={dueDate.slice(0, 10)}
-            onChange={(e) => setDueDate(e.target.value)}
-            {...common}
-          />
+          {autoSortForm && (
+            <>
+              <FormSelect
+                label="Timeslots"
+                name="slotId"
+                defaultValue={data?.slotId}
+                options={
+                  (slots?.ok &&
+                    slots.data.map((s) => ({ label: s.name, value: s.id }))) ||
+                  []
+                }
+                {...common}
+              />
+
+              <FormInput
+                label="Can be started on"
+                type="date"
+                name="startDate"
+                value={startDate?.slice(0, 10)}
+                onChange={(e) => setStartDate(e.target.value)}
+                {...common}
+              />
+              <FormInput
+                label="Due by"
+                type="date"
+                name="dueDate"
+                value={dueDate?.slice(0, 10)}
+                onChange={(e) => setDueDate(e.target.value)}
+                {...common}
+              />
+            </>
+          )}
         </>
       )}
     </>

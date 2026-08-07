@@ -59,17 +59,22 @@ export const CalItemFormFields = ({
   const [dueDate, setDueDate] = useState<string | undefined>(dateNow);
   const [start, setStart] = useState<string | undefined>(dateNow);
   const [end, setEnd] = useState<string | undefined>(dateNow);
+  const [bufferBefore, setBufferBefore] = useState<string | undefined>();
+  const [bufferAfter, setBufferAfter] = useState<string | undefined>();
 
   useEffect(() => {
+    console.log(data);
     if (!data) return;
-    setName(data.name)
-    setWeight(String(data.weight))
+    setName(data.name);
+    setWeight(String(data.weight));
     setStart(data.start);
     setEnd(data.end);
+    setBufferBefore(data.bufferBefore);
+    setBufferAfter(data.bufferAfter);
 
     if (isEvent) return;
-    setDuration(Temporal.Duration.from(data.duration).minutes)
-    setSlotId(data.slotId)
+    setDuration(Temporal.Duration.from(data.duration).minutes);
+    setSlotId(data.slotId);
     setAutoSortForm(data.isSortable);
     setStartDate(data.startDate);
     setDueDate(data.dueDate);
@@ -95,7 +100,6 @@ export const CalItemFormFields = ({
           disabled={isViewOnly}
         />
       )}
-
       {isEvent || !autoSortForm ? (
         <>
           <FormInput
@@ -121,13 +125,15 @@ export const CalItemFormFields = ({
           name="duration"
           value={duration}
           onChange={(e) =>
-            setDuration(Temporal.Duration.from({minutes: Number(e.target.value)}).minutes)
+            setDuration(
+              Temporal.Duration.from({ minutes: Number(e.target.value) })
+                .minutes,
+            )
           }
           options={durationOptions}
           {...common}
         />
       )}
-
       {isTask && (
         <>
           <div style={{ display: "flex", flexDirection: "row" }}>
@@ -184,6 +190,31 @@ export const CalItemFormFields = ({
           )}
         </>
       )}
+      // buffer after are set to 15 minutes by default for me
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        <FormInput
+          label={"Buffer Before"}
+          type="number"
+          min="0"
+          max="1440"
+          name="bufferBefore"
+          value={
+            bufferBefore ? Temporal.Duration.from(bufferBefore).minutes : 0
+          }
+          onChange={(e) => setBufferBefore(e.target.value)}
+          {...common}
+        />
+        <FormInput
+          label={"Buffer After"}
+          type="number"
+          min="0"
+          max="1440"
+          name="bufferAfter"
+          value={bufferAfter ? Temporal.Duration.from(bufferAfter).minutes : 15}
+          onChange={(e) => setBufferAfter(e.target.value)}
+          {...common}
+        />
+      </div>
     </>
   );
 };

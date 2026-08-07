@@ -20,8 +20,8 @@ export const createEventFromForm = async (data: FormData) => {
     duration: end.since(start),
     weight: 1,
     slotId: String(data.get("timeslots")),
-    bufferBefore: Temporal.Duration.from({ hours: 0 }),
-    bufferAfter: Temporal.Duration.from({ hours: 0 }),
+    bufferBefore: Temporal.Duration.from({ minutes: Number(data.get("bufferBefore")) }),
+    bufferAfter: Temporal.Duration.from({minutes: Number(data.get("bufferBefore"))}),
     startDate: start,
     dueDate: end,
   };

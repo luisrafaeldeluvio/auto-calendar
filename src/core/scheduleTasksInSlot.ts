@@ -52,7 +52,7 @@ export const scheduleTasksInSlot = (
       ]);
     }
 
-    const taskStartTime: Temporal.PlainTime = currentTime;
+    const taskStartTime: Temporal.PlainTime = currentTime.add(task.bufferBefore);
     const taskEndTime: Temporal.PlainTime = taskStartTime.add(
       task.duration ?? { minutes: 0 },
     );
@@ -132,7 +132,7 @@ export const scheduleTasksInSlot = (
     console.log("Added task to schedule object. Scheduling next task");
     return schedule(
       remainingTasks,
-      taskEndTime,
+      taskEndTime.add(task.bufferAfter),
       [...sortedTasks, newTask],
       overDueTasks,
     );

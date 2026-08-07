@@ -34,7 +34,7 @@ const localizer = dateFnsLocalizer({
   - [x] make tasks actually completable
     - [ ] BUG: events also have the checkboxes for completables
   - [ ] custom event colors
-  - [ ] implement the buffer feature
+  - [x] implement the buffer feature
   - [x] make calendar items clickable, allowing for editing
     - it will be basically using the create new task/event modal
     - I should first create a combine version of them (task and event)

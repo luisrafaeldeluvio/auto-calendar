@@ -18,8 +18,12 @@ export const createTaskFromForm = async (data: FormData) => {
     isSorted: false,
     weight: Number(data.get("weight")) as Weight,
     slotId: String(data.get("slotId")),
-    bufferBefore: Temporal.Duration.from({ hours: 0 }),
-    bufferAfter: Temporal.Duration.from({ hours: 0 }),
+    bufferBefore: Temporal.Duration.from({
+      minutes: Number(data.get("bufferBefore")),
+    }),
+    bufferAfter: Temporal.Duration.from({
+      minutes: Number(data.get("bufferBefore")),
+    })
   } as const;
 
   const task: Omit<CalendarTaskUnscheduled, "id"> | Omit<CalendarTask, "id"> =
@@ -60,6 +64,12 @@ export const updateTaskFromForm = async (data: FormData, id: string) => {
     name: String(data.get("name")),
     isSortable: data.get("isSortable") === "on",
     weight: Number(data.get("weight")) as Weight,
+    bufferBefore: Temporal.Duration.from({
+      minutes: Number(data.get("bufferBefore")),
+    }).toString(),
+    bufferAfter: Temporal.Duration.from({
+      minutes: Number(data.get("bufferBefore")),
+    }).toString(),
     ...(data.get("duration")
       ? {
           duration: Temporal.Duration.from({

@@ -16,6 +16,7 @@ import { CalItemFormFields } from "./components/form/CalItemFormFields";
 import { CalItemForm } from "./components/form/CalItemForm";
 import { updateTaskFromForm } from "./components/form/taskFromForm";
 import { CustomEvent } from "./components/common/CustomEvent";
+import { DeleteCalItemButton } from "./components/DeleteCalItem";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -47,7 +48,7 @@ const localizer = dateFnsLocalizer({
     - (with end being the current time)
   - [ ] make calendar item duplicatable
   - [ ] allow the dialogs to be closable when clicking outside the dialog
-  - [ ] allow items to de deletable
+  - [x] allow items to de deletable
   - [ ] implement the update event forms function
   - [ ] find out how repeating calendar items would work.
     - maybe we give items a recuranceId that is shared for the repeating items.
@@ -60,8 +61,6 @@ const localizer = dateFnsLocalizer({
       gets all the tasks within the week bounds, this includes those that are overdue.
       Wait, but they are STILL being scheduled, something to do with the sorting algorithm.
 */
-
-
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -109,6 +108,13 @@ function App() {
               data={eventData}
               isViewOnly={false}
               itemType={eventData.type}
+            />
+            <DeleteCalItemButton
+              calItemId={eventData.id}
+              onOk={() => {
+                calItemModalRef.current?.close();
+                alert("Deleted item");
+              }}
             />
           </CalItemForm>
         )}

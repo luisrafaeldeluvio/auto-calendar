@@ -35,3 +35,15 @@ export const addEvent = async (
     return { ok: false, error: String(error) };
   }
 };
+
+// add deleteEvent
+export const deleteCalItem = async (
+  itemId: string,
+): Promise<Result<string, "NO_ID_MATCH">> => {
+  try {
+    await db.events.delete(itemId);
+    return { ok: true, data: itemId };
+  } catch (error) {
+    return { ok: false, error: "NO_ID_MATCH" };
+  }
+};

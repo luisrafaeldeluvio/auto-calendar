@@ -15,6 +15,7 @@ import { SortTasksButton } from "./components/SortTasksButton";
 import { CalItemFormFields } from "./components/form/CalItemFormFields";
 import { CalItemForm } from "./components/form/CalItemForm";
 import { updateTaskFromForm } from "./components/form/taskFromForm";
+import { CustomEvent } from "./components/common/CustomEvent";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -60,37 +61,7 @@ const localizer = dateFnsLocalizer({
       Wait, but they are STILL being scheduled, something to do with the sorting algorithm.
 */
 
-export const CustomEvent = ({
-  event,
-  ref,
-}: {
-  event: EventDbModel;
-  ref: React.RefObject<HTMLDialogElement | null>;
-}) => {
-  const finishTask = async (state: boolean) =>
-    await db.events.update(event.id, {
-      isDone: state,
-    });
 
-  return (
-    <>
-      <button
-        style={{ backgroundColor: "red", width: "100%", height: "100%" }}
-        onClick={() => ref.current?.showModal()}
-      >
-        <input
-          type="checkbox"
-          name="isDone"
-          id={event.id}
-          onClick={(e) => e.stopPropagation()}
-          checked={event.isDone}
-          onChange={(e) => finishTask(e.target.checked)}
-        />
-        <span>{event.isDone ? <s>{event.name}</s> : event.name}</span>
-      </button>
-    </>
-  );
-};
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -127,13 +98,6 @@ function App() {
 
       <dialog id={eventData?.id} ref={calItemModalRef}>
         {eventData && (
-          // <TaskForm
-          //   mode="edit"
-          //   data={eventData}
-          //   key={JSON.stringify(eventData)}
-          //   onOk={() => calItemModalRef.current?.close()}
-          // />
-
           <CalItemForm
             mode="edit"
             data={eventData}

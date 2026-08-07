@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
-import { CustomEvent } from "../App";
+import { CustomEvent } from "../components/common/CustomEvent";
 
 export const UnsortedTaskModal = () => {
   const items = useLiveQuery(() =>

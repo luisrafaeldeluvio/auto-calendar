@@ -34,7 +34,11 @@ interface CalItemFormFieldsProps {
   data?: EventDbModel;
   isViewOnly: boolean;
 }
-
+// should work on delete button
+// should probably pass the mode to here
+// so that delete would only appear in view and edit mode, not create
+// or maybe i should create a delete event prop and pass it as a child of CalItemForm as well?
+// yep i should do that!!!, also that for the duplicate button!!!
 export const CalItemFormFields = ({
   itemType,
   data,
@@ -46,6 +50,10 @@ export const CalItemFormFields = ({
   const dateNow = Temporal.Now.plainDateTimeISO().toString();
   const common = { required: true, disabled: isViewOnly };
 
+  const [name, setName] = useState<string | undefined>();
+  const [duration, setDuration] = useState<number | undefined>();
+  const [weight, setWeight] = useState<string | undefined>();
+  const [slotId, setSlotId] = useState<string | undefined>();
   const [autoSortForm, setAutoSortForm] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string | undefined>(dateNow);
   const [dueDate, setDueDate] = useState<string | undefined>(dateNow);
@@ -54,10 +62,14 @@ export const CalItemFormFields = ({
 
   useEffect(() => {
     if (!data) return;
+    setName(data.name)
+    setWeight(String(data.weight))
     setStart(data.start);
     setEnd(data.end);
 
     if (isEvent) return;
+    setDuration(Temporal.Duration.from(data.duration).minutes)
+    setSlotId(data.slotId)
     setAutoSortForm(data.isSortable);
     setStartDate(data.startDate);
     setDueDate(data.dueDate);
@@ -69,7 +81,8 @@ export const CalItemFormFields = ({
         label="Name"
         type="text"
         name="name"
-        defaultValue={data?.name}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         {...common}
       />
       {isTask && (
@@ -106,7 +119,10 @@ export const CalItemFormFields = ({
         <FormSelect
           label="Duration"
           name="duration"
-          defaultValue={data && Temporal.Duration.from(data.duration).minutes}
+          value={duration}
+          onChange={(e) =>
+            setDuration(Temporal.Duration.from({minutes: Number(e.target.value)}).minutes)
+          }
           options={durationOptions}
           {...common}
         />
@@ -115,15 +131,18 @@ export const CalItemFormFields = ({
       {isTask && (
         <>
           <div style={{ display: "flex", flexDirection: "row" }}>
-            {weightOptions.map(({ weight, text }) => {
+            {weightOptions.map((w) => {
               return (
                 <FormInput
-                  key={weight}
-                  label={text}
+                  key={w.weight}
+                  label={w.text}
                   type="radio"
                   name="weight"
-                  value={weight}
-                  defaultChecked={data?.weight === weight || text === "Normal"}
+                  value={w.weight}
+                  defaultChecked={
+                    weight === String(w.weight) || w.text === "Normal"
+                  }
+                  onChange={(e) => setWeight(e.target.value)}
                   {...common}
                 />
               );
@@ -135,7 +154,8 @@ export const CalItemFormFields = ({
               <FormSelect
                 label="Timeslots"
                 name="slotId"
-                defaultValue={data?.slotId}
+                value={slotId}
+                onChange={(e) => setSlotId(e.target.value)}
                 options={
                   (slots?.ok &&
                     slots.data.map((s) => ({ label: s.name, value: s.id }))) ||

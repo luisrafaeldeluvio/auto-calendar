@@ -3,7 +3,7 @@ import { useId } from "react";
 type FormSelectProps = {
   label: string;
   name: string;
-  defaultValue: string | number | undefined;
+  value: string | number | undefined;
   id?: string;
   options: {
     id?: string;
@@ -16,7 +16,7 @@ type FormSelectProps = {
 export const FormSelect = ({
   label,
   name,
-  defaultValue,
+  value,
   options,
   id = useId(),
   ...selectProps
@@ -24,7 +24,7 @@ export const FormSelect = ({
   return (
     <>
       <label htmlFor={id}>{label}</label>
-      <select name={name} id={id} defaultValue={defaultValue} {...selectProps}>
+      <select name={name} id={id} value={value} {...selectProps}>
         {options.map((opt) => (
           <option value={opt.value} key={opt.id ?? opt.value}>
             {opt.label}

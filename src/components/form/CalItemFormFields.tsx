@@ -59,8 +59,8 @@ export const CalItemFormFields = ({
   const [dueDate, setDueDate] = useState<string | undefined>(dateNow);
   const [start, setStart] = useState<string | undefined>(dateNow);
   const [end, setEnd] = useState<string | undefined>(dateNow);
-  const [bufferBefore, setBufferBefore] = useState<string | undefined>();
-  const [bufferAfter, setBufferAfter] = useState<string | undefined>();
+  const [bufferBefore, setBufferBefore] = useState<string>("0");
+  const [bufferAfter, setBufferAfter] = useState<string>("0");
 
   useEffect(() => {
     console.log(data);
@@ -69,8 +69,8 @@ export const CalItemFormFields = ({
     setWeight(String(data.weight));
     setStart(data.start);
     setEnd(data.end);
-    setBufferBefore(data.bufferBefore);
-    setBufferAfter(data.bufferAfter);
+    setBufferBefore(String(Temporal.Duration.from(data.bufferBefore).minutes));
+    setBufferAfter(String(Temporal.Duration.from(data.bufferAfter).minutes));
 
     if (isEvent) return;
     setDuration(Temporal.Duration.from(data.duration).minutes);
@@ -198,9 +198,7 @@ export const CalItemFormFields = ({
           min="0"
           max="1440"
           name="bufferBefore"
-          value={
-            bufferBefore ? Temporal.Duration.from(bufferBefore).minutes : 0
-          }
+          value={bufferBefore}
           onChange={(e) => setBufferBefore(e.target.value)}
           {...common}
         />
@@ -210,7 +208,7 @@ export const CalItemFormFields = ({
           min="0"
           max="1440"
           name="bufferAfter"
-          value={bufferAfter ? Temporal.Duration.from(bufferAfter).minutes : 15}
+          value={bufferAfter}
           onChange={(e) => setBufferAfter(e.target.value)}
           {...common}
         />

@@ -68,7 +68,7 @@ export const updateTaskFromForm = async (data: FormData, id: string) => {
       minutes: Number(data.get("bufferBefore")),
     }).toString(),
     bufferAfter: Temporal.Duration.from({
-      minutes: Number(data.get("bufferBefore")),
+      minutes: Number(data.get("bufferAfter")),
     }).toString(),
     ...(data.get("duration")
       ? {
@@ -110,7 +110,6 @@ export const updateTaskFromForm = async (data: FormData, id: string) => {
       : {}),
   };
   try {
-    console.log(update);
     await db.events.update(id, update);
     sortTasks();
   } catch (e) {

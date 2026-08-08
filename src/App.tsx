@@ -44,7 +44,7 @@ const localizer = dateFnsLocalizer({
     - [x] on event, create a checkbox for auto sorting a task or manually
       setting start and end
   - [ ] BUG: events also have complete tasks buttons in their component
-  - [ ] when completing a task early, they should be moved to the curren time
+  - [x] when completing a task early, they should be moved to the curren time
     - (with end being the current time)
   - [ ] make calendar item duplicatable
   - [ ] allow the dialogs to be closable when clicking outside the dialog
@@ -65,6 +65,8 @@ const localizer = dateFnsLocalizer({
       won't be scheduled since it's past 6:00.
   - [x] 'BUG: Uncaught RangeError: invalid duration: 1' when changing the value of bufferAfter
   - [ ] BUG: I also just realized the buffer feature won't work for events
+  - [ ] NOTE: we might not need to use a lot of useState that stores calItem objects since 
+    - we use useLiveQuery; https://dexie.org/docs/dexie-react-hooks/useLiveQuery%28%29
 */
 
 function App() {

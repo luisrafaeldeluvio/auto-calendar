@@ -16,7 +16,8 @@ export const scheduleTasksInSlot = (
   const busyEvents = activeEvents.filter((e) => e.isBusy);
   const sortTasks = queuedTasks.toSorted((a, b) => b.weight - a.weight);
   const startingTime =
-    Temporal.PlainTime.compare(Temporal.Now.plainTimeISO(), slotStartTime) >= 0
+    Temporal.PlainTime.compare(Temporal.Now.plainTimeISO(), slotStartTime) >=
+      0 && date.equals(Temporal.Now.plainDateISO())
       ? Temporal.Now.plainTimeISO()
       : slotStartTime;
   // - [ ] should add creationDate property on CalenderBase. So when sorting

@@ -60,7 +60,7 @@ const localizer = dateFnsLocalizer({
     - CONFIRMED, tasks are not respecting their due date. I think I know why, our events
       gets all the tasks within the week bounds, this includes those that are overdue.
       Wait, but they are STILL being scheduled, something to do with the sorting algorithm.
-  - [ ] BUG: other days can't be scheduled because they are also anchore to the CURRENT TIME.
+  - [x] BUG: other days can't be scheduled because they are also anchore to the CURRENT TIME.
     - Example: today is 07, 22:00 and I want to schedule something for tomorrow morning, but It
       won't be scheduled since it's past 6:00.
   - [x] 'BUG: Uncaught RangeError: invalid duration: 1' when changing the value of bufferAfter

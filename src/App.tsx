@@ -78,7 +78,7 @@ function App() {
       year: currentDate.getFullYear(),
       month: currentDate.getMonth() + 1,
       day: currentDate.getDate(),
-    }),
+    }), 2
   );
 
   const events = useLiveQuery(() =>

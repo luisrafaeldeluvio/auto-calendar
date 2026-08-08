@@ -8,7 +8,7 @@ import { getWeekBounds } from "./getWeekBounds";
 import type { CalendarTaskUnscheduled } from "../types/models/calendarItem";
 
 export const sortTasks = async () => {
-  const { startOfWeek, endOfWeek } = getWeekBounds();
+  const { startOfWeek, endOfWeek } = getWeekBounds(undefined, 2);
   // its because of this!!! we need to make startOfWeek and endOfWeek
   // anchored to the current day!! maybe startOfWeek will always be the current day
   // while endOfweek will be 7 days from startOfWeek
